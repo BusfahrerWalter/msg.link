@@ -1,5 +1,7 @@
 <script lang="ts">
 	import ErrorPage from "$lib/components/error-page.svelte";
+	import Button from "@/components/ui/button/button.svelte";
+	import Input from "@/components/ui/input/input.svelte";
 
 	let value = $state('');
 
@@ -24,11 +26,14 @@
 	description="Try entering a valid URL suffix to see a page."
 	animate={false}
 >
-	<input
-		id="pathInput"
-		placeholder="/some-page"
-		bind:value={value}
-		onkeydown={handleInput}
-	/>
-	<button id="goBtn" onclick={go}>Go</button>
+	<div class="flex flex-row gap-1 justify-center mb-4">
+		<Input
+			placeholder="/some-page"
+			bind:value={value}
+			onkeydown={handleInput}
+		/>
+		<Button onclick={go}>Go</Button>
+	</div>
+	<Button variant="link" href="/login">Login</Button>
 </ErrorPage>
+

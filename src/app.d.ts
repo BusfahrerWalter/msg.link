@@ -2,7 +2,7 @@
 // for information about these interfaces
 declare global {
 	namespace App {
-		interface AdminUserProfile {
+		interface UserProfile {
 			username: string;
 			urlSuffix: string;
 		}
@@ -19,13 +19,15 @@ declare global {
 		type AuthApiResponse = ApiResponse<{
 			authenticated: boolean;
 			expiresAt?: string;
-			user?: AdminUserProfile;
+			user?: UserProfile;
 		}>;
 
 		type AdminUserApiResponse = ApiResponse<{
 			authenticated: boolean;
-			user?: AdminUserProfile;
+			user?: UserProfile;
 		}>;
+
+		type SidebarTab = 'message-settings' | 'user-settings' | 'general-settings' | 'manage-users';
 	}
 
 	namespace Server {

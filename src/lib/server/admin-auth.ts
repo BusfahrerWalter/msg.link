@@ -45,7 +45,7 @@ async function pruneExpiredSessions() {
 	return activeSessions;
 }
 
-function toPublicUserProfile(user: Server.StoredAdminUser): App.AdminUserProfile {
+function toPublicUserProfile(user: Server.StoredAdminUser): App.UserProfile {
 	return {
 		username: user.username,
 		urlSuffix: user.urlSuffix

@@ -1,5 +1,6 @@
 <script>
 	import ErrorPage from "$lib/components/error-page.svelte";
+	import Button from "@/components/ui/button/button.svelte";
 </script>
 
 <ErrorPage
@@ -7,5 +8,5 @@
 	title="Page not found"
 	description="The URL you entered wandered off into the void."
 >
-	<a class="home" href="/">← Back to safety</a>
+	<Button href="/" variant="link">← Back to safety</Button>
 </ErrorPage>

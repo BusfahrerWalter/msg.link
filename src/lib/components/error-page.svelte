@@ -29,12 +29,14 @@
 		{/if}
 
 		{#if children}
-			<div>
-				{@render children()}
-			</div>
+			{@render children()}
 		{/if}
 	</div>
 </main>
+
+<svelte:head>
+	<title>{title}</title>
+</svelte:head>
 
 <style>
 	.page {
@@ -42,8 +44,12 @@
 		display: grid;
 		place-items: center;
 		font-family: system-ui, sans-serif;
-		background: radial-gradient(circle at 50% 30%, #1a1a1a, #0d0d0d);
-		color: #fff;
+		background: radial-gradient(
+			circle at 50% 30%,
+			color-mix(in srgb, var(--color-background) 90%, var(--color-foreground)),
+			var(--color-background)
+		);
+		color: var(--color-foreground);
 		text-align: center;
 		padding: 1rem;
 		box-sizing: border-box;
@@ -55,10 +61,12 @@
 
 	h1 {
 		font-size: clamp(6rem, 15vw, 10rem);
+		font-weight: bold;
 		margin: 0;
 		line-height: 1;
 		letter-spacing: 0.05em;
 		background: linear-gradient(90deg, #6cf, #c6f);
+		background-clip: text;
 		-webkit-background-clip: text;
 		color: transparent;
 		user-select: none;
@@ -74,25 +82,13 @@
 		margin-bottom: 2rem;
 	}
 
-	.home {
-		display: inline-block;
-		padding: 0.6rem 1.2rem;
-		border-radius: 999px;
-		text-decoration: none;
-		color: #fff;
-		background-color: rgba(255,255,255,0.08);
-		border: 1px solid rgba(255,255,255,0.15);
-		transition: transform 0.15s ease, background-color 0.15s ease;
-	}
-
-	.home:hover {
-		transform: translateY(-2px);
-		background-color: rgba(255,255,255,0.15);
-	}
-
 	@keyframes float {
-		0%,100% { transform: translateY(0); }
-		50% { transform: translateY(-10px); }
+		0%,100% {
+			transform: translateY(5px);
+		}
+		50% {
+			transform: translateY(-5px);
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
