@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
+	<defs>
+		<linearGradient id="icon-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+			<stop offset="0%" stop-color="#6cf" />
+			<stop offset="100%" stop-color="#c6f" />
+		</linearGradient>
+	</defs>
+	<path fill="url(#icon-gradient)" d="M280-160v-520H80v-120h520v120H400v520H280Zm360 0v-320H520v-120h360v120H760v320H640Z" />
+</svg>
