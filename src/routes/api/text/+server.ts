@@ -22,7 +22,6 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const payload: App.TextApiResponse = {
 		text,
-		message: hasValidText ? 'Text loaded successfully' : 'No text found for the given suffix',
 		code: hasValidText ? 'TEXT_LOAD_SUCCESS' : 'TEXT_LOAD_ERROR'
 	};
 
@@ -35,7 +34,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const user = await auth.getAuthenticatedUser(cookies);
 	if (!user) {
 		const payload: App.TextApiResponse = {
-			message: 'Unauthorized',
 			code: 'AUTH_REQUIRED'
 		};
 
@@ -47,7 +45,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 
 	if (typeof text !== 'string') {
 		const payload: App.TextApiResponse = {
-			message: 'Field "text" must be a string',
 			code: 'INVALID_TEXT_TYPE'
 		};
 
@@ -58,7 +55,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 
 	if (trimmedText.length === 0) {
 		const payload: App.TextApiResponse = {
-			message: 'Text must not be empty',
 			code: 'EMPTY_TEXT'
 		};
 
@@ -67,7 +63,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 
 	if (trimmedText.length > textMaxLength) {
 		const payload: App.TextApiResponse = {
-			message: `Text must be ${textMaxLength} characters or less`,
 			code: 'TEXT_TOO_LONG'
 		};
 
@@ -77,7 +72,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	await txt.setTextForSuffix(user.urlSuffix, trimmedText);
 
 	const payload: App.TextApiResponse = {
-		message: 'Text updated',
 		text: await txt.getTextForSuffix(user.urlSuffix),
 		code: 'TEXT_UPDATE_SUCCESS'
 	};

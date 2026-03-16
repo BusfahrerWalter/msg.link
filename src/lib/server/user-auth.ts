@@ -4,6 +4,7 @@ import argon2 from 'argon2';
 import type { Cookies } from '@sveltejs/kit';
 import { dataManager } from '$lib/server/data/DataManager';
 import * as txt from '$lib/server/text-store';
+import * as msg from '$lib/server/message-settings-store';
 
 const userSessionCookieName = 'user_session';
 const defaultSessionDays = 7;
@@ -89,6 +90,9 @@ async function getOrCreateUsers() {
 	};
 
 	await saveUsers([defaultUser]);
+	await msg.createMessageSettings(username);
+	await txt.setTextForSuffix(username, 'Hello, world! This is your default text. You can change it by editing the text in the configuration page.');
+
 	return [defaultUser];
 }
 

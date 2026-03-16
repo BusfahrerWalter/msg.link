@@ -8,7 +8,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	const payload: App.AuthApiResponse = {
 		authenticated,
 		user: user ?? undefined,
-		message: authenticated ? 'Session is active' : 'No active session'
+		code: authenticated ? 'SESSION_ACTIVE' : 'NO_ACTIVE_SESSION'
 	};
 
 	return json(payload);
@@ -22,7 +22,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	if (typeof username !== 'string' || username.trim().length === 0) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
-			message: 'Username is required',
 			code: 'USERNAME_REQUIRED'
 		};
 
@@ -32,7 +31,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	if (typeof password !== 'string' || password.length === 0) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
-			message: 'Password is required',
 			code: 'PASSWORD_REQUIRED'
 		};
 
@@ -44,7 +42,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		if (!user) {
 			const payload: App.AuthApiResponse = {
 				authenticated: false,
-				message: 'Invalid username or password',
 				code: 'INVALID_CREDENTIALS'
 			};
 
@@ -57,7 +54,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			authenticated: true,
 			expiresAt: expiresAt.toISOString(),
 			user,
-			message: 'Login successful'
+			code: 'LOGIN_SUCCESS'
 		};
 
 		return json(payload);
@@ -65,7 +62,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		console.error('Failed to verify admin password', error);
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
-			message: 'Admin authentication is not configured correctly',
 			code: 'AUTH_CONFIG_ERROR'
 		};
 
@@ -77,7 +73,7 @@ export const DELETE: RequestHandler = async ({ cookies }) => {
 	await auth.clearSession(cookies);
 	const payload: App.AuthApiResponse = {
 		authenticated: false,
-		message: 'Logged out'
+		code: 'LOGOUT_SUCCESS'
 	};
 
 	return json(payload);

@@ -8,7 +8,8 @@
 	type Props = {
 		data: {
 			authenticated: boolean;
-			user?: App.UserProfile | null
+			user?: App.UserProfile | null,
+			messageSettings?: Server.StoredMessageSettings | null
 		}
 	};
 
@@ -20,6 +21,7 @@
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let urlSuffix = $state('');
+	let messageSettings = $state<Server.StoredMessageSettings | null>(null);
 	let message = $state('');
 	let currentUser = $state<App.UserProfile | null>(null);
 
@@ -34,6 +36,8 @@
 		currentUser = data.user ?? null;
 		username = data.user?.username ?? username;
 		urlSuffix = data.user?.urlSuffix ?? '';
+		messageSettings = data.messageSettings ?? null;
+
 		clearMessage();
 	});
 

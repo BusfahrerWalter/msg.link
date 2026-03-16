@@ -8,7 +8,6 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	if (!user) {
 		const payload: App.UserApiResponse = {
 			authenticated: false,
-			message: 'Unauthorized',
 			code: 'AUTH_REQUIRED'
 		};
 
@@ -18,7 +17,7 @@ export const GET: RequestHandler = async ({ cookies }) => {
 	const payload: App.UserApiResponse = {
 		authenticated: true,
 		user,
-		message: 'User profile loaded'
+		code: 'USER_PROFILE_LOAD_SUCCESS'
 	};
 
 	return json(payload);
@@ -31,7 +30,6 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 	if (typeof urlSuffix !== 'string') {
 		const payload: App.UserApiResponse = {
 			authenticated: false,
-			message: 'Field "urlSuffix" must be a string',
 			code: 'INVALID_URL_SUFFIX'
 		};
 
@@ -42,7 +40,6 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 	if (!user) {
 		const payload: App.UserApiResponse = {
 			authenticated: false,
-			message: 'Unauthorized',
 			code: 'AUTH_REQUIRED'
 		};
 
@@ -52,7 +49,7 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 	const payload: App.UserApiResponse = {
 		authenticated: true,
 		user,
-		message: 'User profile updated'
+		code: 'USER_PROFILE_UPDATE_SUCCESS'
 	};
 
 	return json(payload);

@@ -12,7 +12,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	if (typeof currentPassword !== 'string' || currentPassword.length === 0) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
-			message: 'Current password is required',
 			code: 'CURRENT_PASSWORD_REQUIRED'
 		};
 
@@ -22,7 +21,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	if (typeof newPassword !== 'string' || newPassword.length < minPasswordLength) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
-			message: `New password must be at least ${minPasswordLength} characters long`,
 			code: 'NEW_PASSWORD_TOO_SHORT'
 		};
 
@@ -39,7 +37,6 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		const hasSession = await auth.hasSession(cookies);
 		const payload: App.AuthApiResponse = {
 			authenticated: hasSession,
-			message: hasSession ? 'Current password is incorrect' : 'Unauthorized',
 			code: hasSession ? 'INVALID_CURRENT_PASSWORD' : 'AUTH_REQUIRED'
 		};
 
@@ -50,7 +47,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const payload: App.AuthApiResponse = {
 		authenticated: true,
 		user: user ?? undefined,
-		message: 'Password changed successfully'
+		code: 'PASSWORD_CHANGE_SUCCESS'
 	};
 
 	return json(payload);

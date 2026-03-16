@@ -8,13 +8,14 @@ declare global {
 		}
 
 		type ApiResponse<TPayload extends object = object> = {
-			message: string;
-			code?: string;
+			code: string;
 		} & TPayload;
 
 		type TextApiResponse = ApiResponse<{
 			text?: string;
 		}>;
+
+		type MessageSettingsApiResponse = ApiResponse<Partial<Server.StoredMessageSettings>>;
 
 		type AuthApiResponse = ApiResponse<{
 			authenticated: boolean;
