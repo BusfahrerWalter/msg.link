@@ -22,7 +22,7 @@ declare global {
 			user?: UserProfile;
 		}>;
 
-		type AdminUserApiResponse = ApiResponse<{
+		type UserApiResponse = ApiResponse<{
 			authenticated: boolean;
 			user?: UserProfile;
 		}>;
@@ -31,10 +31,21 @@ declare global {
 	}
 
 	namespace Server {
-		interface StoredAdminUser {
+		interface StoredUser {
 			username: string;
 			passwordHash: string;
 			urlSuffix: string;
+		}
+
+		type MessageType = 'text' | 'image' | 'markdown' | 'link';
+
+		interface StoredMessageSettings {
+			type: MessageType;
+			content: string;
+			color: string;
+			background: string;
+			fontSize: string;
+			font: string;
 		}
 
 		interface StoredSession {

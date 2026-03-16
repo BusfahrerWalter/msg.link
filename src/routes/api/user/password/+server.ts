@@ -1,6 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import * as auth from '$lib/server/admin-auth';
+import * as auth from '@/server/user-auth';
 
 const minPasswordLength = 8;
 
@@ -29,14 +29,14 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		return json(payload, { status: 400 });
 	}
 
-	const passwordChanged = await auth.changeAuthenticatedUserPassword(
+	const passwordChanged = await auth.updateUserPassword(
 		cookies,
 		currentPassword,
 		newPassword
 	);
 
 	if (!passwordChanged) {
-		const hasSession = await auth.hasAdminSession(cookies);
+		const hasSession = await auth.hasSession(cookies);
 		const payload: App.AuthApiResponse = {
 			authenticated: hasSession,
 			message: hasSession ? 'Current password is incorrect' : 'Unauthorized',

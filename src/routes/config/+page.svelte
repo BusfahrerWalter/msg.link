@@ -175,7 +175,7 @@
 							<Button type="submit">Apply</Button>
 						</form>
 					{:else if currentTab === 'user-settings'}
-						<form class="min-w-form space-y-3 mb-5" onsubmit={changePassword}>
+						<form class="min-w-form space-y-3 mb-5" onsubmit={saveProfile}>
 							<h2>Change URL suffix</h2>
 							<Label>
 								<span>URL suffix</span>

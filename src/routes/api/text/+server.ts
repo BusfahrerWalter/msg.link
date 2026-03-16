@@ -1,13 +1,13 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
-import * as auth from '$lib/server/admin-auth';
+import * as auth from '@/server/user-auth';
 import * as txt from '$lib/server/text-store';
 
 const defaultTextMaxLength = 280;
 
 function getTextMaxLength() {
-	const configuredMaxLength = Number(env.TEXT_MAX_LENGTH ?? defaultTextMaxLength);
+	const configuredMaxLength = Number(env.MAX_CONTENT_LENGTH ?? defaultTextMaxLength);
 	if (!Number.isInteger(configuredMaxLength) || configuredMaxLength <= 0) {
 		return defaultTextMaxLength;
 	}

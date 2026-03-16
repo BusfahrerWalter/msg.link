@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import * as auth from '$lib/server/admin-auth';
+import * as auth from '@/server/user-auth';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	const user = await auth.getAuthenticatedUser(cookies);

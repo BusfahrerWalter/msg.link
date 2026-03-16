@@ -17,3 +17,21 @@ export async function setTextForSuffix(urlSuffix: string, text: string) {
 	map[urlSuffix] = text;
 	await dataManager.save(textMapStorageKey, map);
 }
+
+export async function moveTextToSuffix(previousSuffix: string, nextSuffix: string) {
+	if (previousSuffix === nextSuffix) {
+		return;
+	}
+
+	const map = await loadTextMap();
+	const currentText = map[previousSuffix];
+
+	if (typeof currentText !== 'string') {
+		return;
+	}
+
+	map[nextSuffix] = currentText;
+	delete map[previousSuffix];
+
+	await dataManager.save(textMapStorageKey, map);
+}

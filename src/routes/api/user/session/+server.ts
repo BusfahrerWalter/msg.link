@@ -1,9 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import * as auth from '$lib/server/admin-auth';
+import * as auth from '@/server/user-auth';
 
 export const GET: RequestHandler = async ({ cookies }) => {
-	const authenticated = await auth.hasAdminSession(cookies);
+	const authenticated = await auth.hasSession(cookies);
 	const user = authenticated ? await auth.getAuthenticatedUser(cookies) : undefined;
 	const payload: App.AuthApiResponse = {
 		authenticated,
@@ -40,7 +40,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	}
 
 	try {
-		const user = await auth.verifyAdminCredentials(username, password);
+		const user = await auth.verifyCredentials(username, password);
 		if (!user) {
 			const payload: App.AuthApiResponse = {
 				authenticated: false,
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 			return json(payload, { status: 401 });
 		}
 
-		const expiresAt = await auth.createAdminSession(cookies, user.username);
+		const expiresAt = await auth.createSession(cookies, user.username);
 
 		const payload: App.AuthApiResponse = {
 			authenticated: true,
@@ -74,7 +74,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 };
 
 export const DELETE: RequestHandler = async ({ cookies }) => {
-	await auth.clearAdminSession(cookies);
+	await auth.clearSession(cookies);
 	const payload: App.AuthApiResponse = {
 		authenticated: false,
 		message: 'Logged out'

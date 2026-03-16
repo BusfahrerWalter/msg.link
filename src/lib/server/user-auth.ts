@@ -3,16 +3,17 @@ import { env } from '$env/dynamic/private';
 import argon2 from 'argon2';
 import type { Cookies } from '@sveltejs/kit';
 import { dataManager } from '$lib/server/data/DataManager';
+import * as txt from '$lib/server/text-store';
 
-const adminSessionCookieName = 'admin_session';
+const userSessionCookieName = 'user_session';
 const defaultSessionDays = 7;
 const defaultAdminPassword = 'admin123';
 const defaultAdminUsername = 'admin';
-const sessionsStorageKey = 'auth/admin-sessions';
-const usersStorageKey = 'auth/admin-users';
+const sessionsStorageKey = 'auth/sessions';
+const usersStorageKey = 'auth/users';
 
 function getSessionLifetimeDays() {
-	const configuredDays = Number(env.ADMIN_SESSION_DAYS ?? defaultSessionDays);
+	const configuredDays = Number(env.USER_SESSION_TTL_DAYS ?? defaultSessionDays);
 	if (!Number.isFinite(configuredDays) || configuredDays <= 0) {
 		return defaultSessionDays;
 	}
@@ -45,19 +46,31 @@ async function pruneExpiredSessions() {
 	return activeSessions;
 }
 
-function toPublicUserProfile(user: Server.StoredAdminUser): App.UserProfile {
+function toPublicUserProfile(user: Server.StoredUser): App.UserProfile {
 	return {
 		username: user.username,
 		urlSuffix: user.urlSuffix
 	};
 }
 
-async function saveUsers(users: Server.StoredAdminUser[]) {
+async function saveUser(user: Server.StoredUser) {
+	const users = await getOrCreateUsers();
+	const userIndex = users.findIndex((u) => u.username === user.username);
+	if (userIndex === -1) {
+		users.push(user);
+	} else {
+		users[userIndex] = user;
+	}
+
+	await saveUsers(users);
+}
+
+async function saveUsers(users: Server.StoredUser[]) {
 	await dataManager.save(usersStorageKey, users);
 }
 
 async function getOrCreateUsers() {
-	const existingUsers = await dataManager.load<Server.StoredAdminUser[]>(usersStorageKey, []);
+	const existingUsers = await dataManager.load<Server.StoredUser[]>(usersStorageKey, []);
 	if (existingUsers.length > 0) {
 		return existingUsers;
 	}
@@ -69,23 +82,23 @@ async function getOrCreateUsers() {
 		type: argon2.argon2id
 	});
 
-	const defaultUser: Server.StoredAdminUser = {
+	const defaultUser: Server.StoredUser = {
 		username,
 		passwordHash: generatedHash,
-		urlSuffix: ''
+		urlSuffix: username
 	};
 
 	await saveUsers([defaultUser]);
 	return [defaultUser];
 }
 
-async function findUserByUsername(username: string) {
+async function findUserByUsername(username: string): Promise<Server.StoredUser | null> {
 	const users = await getOrCreateUsers();
 	return users.find((user) => user.username === username) ?? null;
 }
 
-async function getSessionFromCookie(cookies: Cookies) {
-	const token = cookies.get(adminSessionCookieName);
+async function getSessionFromCookie(cookies: Cookies): Promise<Server.StoredSession | null> {
+	const token = cookies.get(userSessionCookieName);
 	if (!token) {
 		return null;
 	}
@@ -96,7 +109,7 @@ async function getSessionFromCookie(cookies: Cookies) {
 	return sessions.find((session) => session.tokenHash === tokenHash) ?? null;
 }
 
-export async function verifyAdminCredentials(username: string, password: string) {
+export async function verifyCredentials(username: string, password: string): Promise<App.UserProfile | null> {
 	const user = await findUserByUsername(username.trim());
 	if (!user) {
 		return null;
@@ -110,7 +123,7 @@ export async function verifyAdminCredentials(username: string, password: string)
 	return toPublicUserProfile(user);
 }
 
-export async function createAdminSession(cookies: Cookies, username: string) {
+export async function createSession(cookies: Cookies, username: string): Promise<Date> {
 	const token = `${globalThis.crypto.randomUUID()}${globalThis.crypto.randomUUID()}`;
 	const tokenHash = await hashToken(token);
 	const expiresAt = new Date(Date.now() + getSessionLifetimeMs());
@@ -119,7 +132,7 @@ export async function createAdminSession(cookies: Cookies, username: string) {
 	sessions.push({ tokenHash, username, expiresAt: expiresAt.toISOString() });
 	await dataManager.save(sessionsStorageKey, sessions);
 
-	cookies.set(adminSessionCookieName, token, {
+	cookies.set(userSessionCookieName, token, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'strict',
@@ -131,11 +144,11 @@ export async function createAdminSession(cookies: Cookies, username: string) {
 	return expiresAt;
 }
 
-export async function hasAdminSession(cookies: Cookies) {
+export async function hasSession(cookies: Cookies): Promise<boolean> {
 	return Boolean(await getSessionFromCookie(cookies));
 }
 
-export async function getAuthenticatedUser(cookies: Cookies) {
+export async function getAuthenticatedUser(cookies: Cookies): Promise<App.UserProfile | null> {
 	const session = await getSessionFromCookie(cookies);
 	if (!session) {
 		return null;
@@ -149,49 +162,57 @@ export async function getAuthenticatedUser(cookies: Cookies) {
 	return toPublicUserProfile(user);
 }
 
-export async function updateAuthenticatedUserInfo(
-	cookies: Cookies,
-	updates: { urlSuffix?: string }
-) {
+export async function updateUserSuffix(cookies: Cookies, suffix: string): Promise<App.UserProfile | null> {
 	const session = await getSessionFromCookie(cookies);
 	if (!session) {
 		return null;
 	}
 
-	const users = await getOrCreateUsers();
-	const userIndex = users.findIndex((user) => user.username === session.username);
-	if (userIndex === -1) {
+	const user = await findUserByUsername(session.username);
+	if (!user) {
 		return null;
 	}
 
-	if (typeof updates.urlSuffix === 'string') {
-		users[userIndex] = {
-			...users[userIndex],
-			urlSuffix: updates.urlSuffix.trim()
-		};
+	if (typeof suffix !== 'string') {
+		return null;
 	}
 
-	await saveUsers(users);
-	return toPublicUserProfile(users[userIndex]);
+	const requestedSuffix = suffix.trim();
+	if (requestedSuffix.length === 0 || requestedSuffix.length > 50) {
+		return null;
+	}
+
+	const users = await getOrCreateUsers();
+	const alreadyUsedByAnotherUser = users.some((existingUser) => {
+		return existingUser.urlSuffix === requestedSuffix && existingUser.username !== user.username;
+	});
+
+	if (alreadyUsedByAnotherUser) {
+		return null;
+	}
+
+	const previousSuffix = user.urlSuffix;
+	const updatedUserInfo = {
+		...user,
+		urlSuffix: requestedSuffix
+	};
+
+	await saveUser(updatedUserInfo);
+	await txt.moveTextToSuffix(previousSuffix, requestedSuffix);
+	return toPublicUserProfile(updatedUserInfo);
 }
 
-export async function changeAuthenticatedUserPassword(
-	cookies: Cookies,
-	currentPassword: string,
-	newPassword: string
-) {
+export async function updateUserPassword(cookies: Cookies, currentPassword: string, newPassword: string): Promise<boolean> {
 	const session = await getSessionFromCookie(cookies);
 	if (!session) {
 		return false;
 	}
 
-	const users = await getOrCreateUsers();
-	const userIndex = users.findIndex((user) => user.username === session.username);
-	if (userIndex === -1) {
+	const user = await findUserByUsername(session.username);
+	if (!user) {
 		return false;
 	}
 
-	const user = users[userIndex];
 	const currentPasswordMatches = await argon2.verify(user.passwordHash, currentPassword);
 	if (!currentPasswordMatches) {
 		return false;
@@ -201,18 +222,17 @@ export async function changeAuthenticatedUserPassword(
 		type: argon2.argon2id
 	});
 
-	users[userIndex] = {
+	const updatedUserInfo = {
 		...user,
 		passwordHash: nextPasswordHash
 	};
 
-	await saveUsers(users);
-
+	await saveUser(updatedUserInfo);
 	return true;
 }
 
-export async function clearAdminSession(cookies: Cookies) {
-	const token = cookies.get(adminSessionCookieName);
+export async function clearSession(cookies: Cookies): Promise<void> {
+	const token = cookies.get(userSessionCookieName);
 	const sessions = await pruneExpiredSessions();
 
 	if (token) {
@@ -224,7 +244,7 @@ export async function clearAdminSession(cookies: Cookies) {
 		}
 	}
 
-	cookies.delete(adminSessionCookieName, {
+	cookies.delete(userSessionCookieName, {
 		path: '/',
 		httpOnly: true,
 		sameSite: 'strict',

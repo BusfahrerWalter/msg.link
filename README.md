@@ -2,8 +2,8 @@
 
 Simple SvelteKit application with:
 
-- public frontend at `/` that displays the current text in the center
-- admin frontend at `/admin` for updating the text
+- public frontend at `/` or `/t/:userUrlSuffix` that displays the current text in the center
+- config frontend at `/config` for updating the text
 - backend API at `/api/text` for reading/updating text
 
 ## Setup
@@ -11,10 +11,8 @@ Simple SvelteKit application with:
 1. Create a `.env` file in the project root:
 
 ```sh
-DEFAULT_ADMIN_PASSWORD=replace-with-a-strong-password
+DEFAULT_ADMIN_PASSWORD=admin123
 DEFAULT_ADMIN_USERNAME=admin
-ADMIN_SESSION_DAYS=7
-TEXT_MAX_LENGTH=280
 ```
 
 2. Start the app:
