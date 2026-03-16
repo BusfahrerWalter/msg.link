@@ -12,10 +12,10 @@ declare global {
 		} & TPayload;
 
 		type TextApiResponse = ApiResponse<{
-			text?: string;
+			text?: string | null;
 		}>;
 
-		type MessageSettingsApiResponse = ApiResponse<Partial<Server.StoredMessageSettings>>;
+		type MessageSettingsApiResponse = ApiResponse<Partial<Data.StoredMessageSettings>>;
 
 		type AuthApiResponse = ApiResponse<{
 			authenticated: boolean;
@@ -31,11 +31,16 @@ declare global {
 		type SidebarTab = 'message-settings' | 'user-settings' | 'general-settings' | 'manage-users';
 	}
 
-	namespace Server {
+	namespace Data {
 		interface StoredUser {
 			username: string;
 			passwordHash: string;
 			urlSuffix: string;
+		}
+
+		interface StoredMessage {
+			urlSuffix: string;
+			text: string;
 		}
 
 		type MessageType = 'text' | 'image' | 'markdown' | 'link';
@@ -54,6 +59,8 @@ declare global {
 			username: string;
 			expiresAt: string;
 		}
+
+		type TableName = 'users' | 'sessions' | 'texts' | 'settings';
 	}
 }
 

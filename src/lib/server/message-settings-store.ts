@@ -1,8 +1,6 @@
 import { dataManager } from '$lib/server/data/DataManager';
 
-const messageSettingsStorageKey = 'content/message-settings-map';
-
-const defaultSettings: Server.StoredMessageSettings = {
+const defaultSettings: Data.StoredMessageSettings = {
 	type: 'text',
 	content: '',
 	color: '#000000',
@@ -20,19 +18,19 @@ function sanitizeUsername(username: string) {
 	return normalizedUsername;
 }
 
-function sanitizeMessageType(type: unknown): Server.MessageType {
+function sanitizeMessageType(type: unknown): Data.MessageType {
 	if (type === 'text' || type === 'image' || type === 'markdown' || type === 'link') {
 		return type;
 	}
 
-	return 'text';
+	return defaultSettings.type;
 }
 
 function sanitizeStringField(value: unknown, fallbackValue = '') {
 	return typeof value === 'string' ? value : fallbackValue;
 }
 
-function sanitizeMessageSettings(settings: Server.StoredMessageSettings): Server.StoredMessageSettings {
+function sanitizeMessageSettings(settings: Data.StoredMessageSettings): Data.StoredMessageSettings {
 	return {
 		type: sanitizeMessageType(settings.type),
 		content: sanitizeStringField(settings.content, defaultSettings.content),
@@ -43,30 +41,16 @@ function sanitizeMessageSettings(settings: Server.StoredMessageSettings): Server
 	};
 }
 
-async function loadMessageSettingsMap() {
-	return dataManager.load<Record<string, Server.StoredMessageSettings>>(messageSettingsStorageKey, {});
+export function getMessageSettings(username: string): Data.StoredMessageSettings | null {
+	return dataManager.loadSettings(sanitizeUsername(username));
 }
 
-export async function getMessageSettings(username: string): Promise<Server.StoredMessageSettings | null> {
-	const normalizedUsername = sanitizeUsername(username);
-	const messageSettingsMap = await loadMessageSettingsMap();
-	const settings = messageSettingsMap[normalizedUsername];
-
-	if (!settings) {
-		return null;
-	}
-
-	return sanitizeMessageSettings(settings);
+export function setMessageSettings(username: string, settings: Data.StoredMessageSettings) {
+	dataManager.saveSettings(sanitizeUsername(username), sanitizeMessageSettings(settings));
 }
 
-export async function setMessageSettings(username: string, settings: Server.StoredMessageSettings) {
-	const normalizedUsername = sanitizeUsername(username);
-	const messageSettingsMap = await loadMessageSettingsMap();
-
-	messageSettingsMap[normalizedUsername] = sanitizeMessageSettings(settings);
-	await dataManager.save(messageSettingsStorageKey, messageSettingsMap);
-}
-
-export async function createMessageSettings(username: string) {
-	await setMessageSettings(username, { ...defaultSettings });
+export function createMessageSettings(username: string): Data.StoredMessageSettings {
+	const settings = { ...defaultSettings };
+	setMessageSettings(username, settings);
+	return settings;
 }

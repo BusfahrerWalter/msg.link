@@ -1,21 +1,11 @@
 import { dataManager } from '$lib/server/data/DataManager';
 
-const textMapStorageKey = 'content/text-map';
-
-async function loadTextMap() {
-	return dataManager.load<Record<string, string>>(textMapStorageKey, {});
+export function getTextForSuffix(urlSuffix: string) {
+	return dataManager.loadText(urlSuffix);
 }
 
-export async function getTextForSuffix(urlSuffix: string) {
-	const map = await loadTextMap();
-	return map[urlSuffix] ?? '';
-}
-
-export async function setTextForSuffix(urlSuffix: string, text: string) {
-	const map = await loadTextMap();
-
-	map[urlSuffix] = text;
-	await dataManager.save(textMapStorageKey, map);
+export function setTextForSuffix(urlSuffix: string, text: string) {
+	dataManager.saveText(urlSuffix, text);
 }
 
 export async function moveTextToSuffix(previousSuffix: string, nextSuffix: string) {
@@ -23,15 +13,5 @@ export async function moveTextToSuffix(previousSuffix: string, nextSuffix: strin
 		return;
 	}
 
-	const map = await loadTextMap();
-	const currentText = map[previousSuffix];
-
-	if (typeof currentText !== 'string') {
-		return;
-	}
-
-	map[nextSuffix] = currentText;
-	delete map[previousSuffix];
-
-	await dataManager.save(textMapStorageKey, map);
+	dataManager.updateSuffix(previousSuffix, nextSuffix);
 }

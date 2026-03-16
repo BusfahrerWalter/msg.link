@@ -69,10 +69,10 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		return json(payload, { status: 400 });
 	}
 
-	await txt.setTextForSuffix(user.urlSuffix, trimmedText);
+	txt.setTextForSuffix(user.urlSuffix, trimmedText);
 
 	const payload: App.TextApiResponse = {
-		text: await txt.getTextForSuffix(user.urlSuffix),
+		text: txt.getTextForSuffix(user.urlSuffix),
 		code: 'TEXT_UPDATE_SUCCESS'
 	};
 

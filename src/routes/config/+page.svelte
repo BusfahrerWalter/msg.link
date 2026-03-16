@@ -9,7 +9,7 @@
 		data: {
 			authenticated: boolean;
 			user?: App.UserProfile | null,
-			messageSettings?: Server.StoredMessageSettings | null
+			messageSettings?: Data.StoredMessageSettings | null
 		}
 	};
 
@@ -21,7 +21,7 @@
 	let currentPassword = $state('');
 	let newPassword = $state('');
 	let urlSuffix = $state('');
-	let messageSettings = $state<Server.StoredMessageSettings | null>(null);
+	let messageSettings = $state<Data.StoredMessageSettings | null>(null);
 	let message = $state('');
 	let currentUser = $state<App.UserProfile | null>(null);
 
