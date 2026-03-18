@@ -34,6 +34,7 @@ declare global {
 			user?: UserProfile;
 		}>;
 
+		type ThemeMode = 'light' | 'dark' | 'system';
 		type SidebarTab = 'message-settings' | 'user-settings' | 'preferences' | 'manage-users' | 'statistics' | 'admin-settings';
 	}
 

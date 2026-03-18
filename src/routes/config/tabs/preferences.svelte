@@ -1,7 +1,9 @@
 <script lang="ts">
 	import Label from "@/components/ui/label/label.svelte";
 	import Button from "@/components/ui/button/button.svelte";
+	import { setMode } from 'mode-watcher';
 
+	import { toMode } from "$src/util";
 	import Dropdown from '@/components/dropdown.svelte';
 
 	type Props = {
@@ -42,6 +44,11 @@
 
 		if (!response.ok && response.status === 401) {
 			currentUser = null;
+			return;
+		}
+
+		if (response.ok) {
+			setMode(toMode(currentUser.theme));
 		}
 	}
 </script>
