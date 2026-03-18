@@ -5,6 +5,7 @@
 	import UserSettings from "./tabs/user-settings.svelte";
 	import ContentSettings from "./tabs/content-settings.svelte";
 	import Preferences from "./tabs/preferences.svelte";
+	import ManageUsers from "./tabs/manage-users.svelte";
 	import * as m from '$lib/paraglide/messages';
 
 	import { getConfigTabLabel } from "./config-tabs";
@@ -97,10 +98,7 @@
 							bind:currentUser={currentUser}
 						/>
 					{:else if currentTab === 'manage-users'}
-						<form class="min-w-form space-y-3">
-							<h2>{m.config_manage_users()}</h2>
-							<p>{m.config_nothing_here()}</p>
-						</form>
+						<ManageUsers />
 					{/if}
 				</div>
 			</div>

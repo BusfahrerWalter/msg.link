@@ -14,10 +14,15 @@ export class ServerDataManager {
 		saveSettings: PreparedStatement;
 		saveUser: PreparedStatement;
 		loadUser: PreparedStatement;
+		loadUsers: PreparedStatement;
 		loadUserBySuffix: PreparedStatement;
+		deleteUser: PreparedStatement;
 		loadSession: PreparedStatement;
 		saveSession: PreparedStatement;
 		removeSession: PreparedStatement;
+		removeSessionsByUsername: PreparedStatement;
+		removeSettingsByUsername: PreparedStatement;
+		removeTextBySuffix: PreparedStatement;
 	};
 
 	constructor(databasePath: string) {
@@ -93,10 +98,19 @@ export class ServerDataManager {
 				SELECT username, passwordHash, urlSuffix, isAdmin, theme, language
 				FROM users WHERE username = ?
 			`),
+			loadUsers: this.database.prepare(`
+				SELECT username, urlSuffix, isAdmin, theme, language
+				FROM users
+				ORDER BY username COLLATE NOCASE ASC
+			`),
 			loadUserBySuffix: this.database.prepare(`
 				SELECT username
 				FROM users
 				WHERE urlSuffix = ?
+			`),
+			deleteUser: this.database.prepare(`
+				DELETE FROM users
+				WHERE username = ?
 			`),
 			loadSession: this.database.prepare(`
 				SELECT tokenHash, username, expiresAt
@@ -112,6 +126,18 @@ export class ServerDataManager {
 			removeSession: this.database.prepare(`
 				DELETE FROM sessions
 				WHERE tokenHash = ?
+			`),
+			removeSessionsByUsername: this.database.prepare(`
+				DELETE FROM sessions
+				WHERE username = ?
+			`),
+			removeSettingsByUsername: this.database.prepare(`
+				DELETE FROM settings
+				WHERE id = ?
+			`),
+			removeTextBySuffix: this.database.prepare(`
+				DELETE FROM texts
+				WHERE id = ?
 			`)
 		};
 	}
@@ -173,6 +199,19 @@ export class ServerDataManager {
 		return row;
 	}
 
+	public loadUsers() {
+		const rows = this.statements.loadUsers.all() as unknown as Array<
+			Omit<Data.StoredUser, 'passwordHash'>
+		>;
+
+		return rows.map((row) => {
+			return {
+				...row,
+				isAdmin: Boolean(row.isAdmin)
+			};
+		});
+	}
+
 	public isSuffixInUse(suffix: string) {
 		const row = this.statements.loadUserBySuffix.get(suffix);
 		return Boolean(row);
@@ -199,6 +238,22 @@ export class ServerDataManager {
 
 	public removeSession(tokenHash: string) {
 		this.statements.removeSession.run(tokenHash);
+	}
+
+	public removeSessionsByUsername(username: string) {
+		this.statements.removeSessionsByUsername.run(username);
+	}
+
+	public removeSettingsByUsername(username: string) {
+		this.statements.removeSettingsByUsername.run(username);
+	}
+
+	public removeTextBySuffix(urlSuffix: string) {
+		this.statements.removeTextBySuffix.run(urlSuffix);
+	}
+
+	public deleteUser(username: string) {
+		this.statements.deleteUser.run(username);
 	}
 }
 

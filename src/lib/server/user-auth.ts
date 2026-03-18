@@ -55,22 +55,14 @@ async function ensureDefaultUser() {
 		return;
 	}
 
-	const generatedHash = await argon2.hash(defaultAdminPassword, {
-		type: argon2.argon2id
-	});
-
-	const defaultUser: Data.StoredUser = {
+	createUser({
 		username: defaultAdminUsername,
-		passwordHash: generatedHash,
+		password: defaultAdminPassword,
 		urlSuffix: defaultAdminUsername,
 		isAdmin: true,
 		theme: 'light',
 		language: 'en'
-	};
-
-	dataManager.saveUser(defaultUser);
-	msg.createMessageSettings(defaultAdminUsername);
-	txt.setTextForSuffix(defaultAdminUsername, 'This is your default text. You can change it by editing the text in the configuration page.');
+	});
 }
 
 function findUserByUsername(username: string): Data.StoredUser | null {
@@ -158,6 +150,67 @@ export function isSuffixInUse(suffix: string): boolean {
 
 export function findUserBySuffix(suffix: string): Data.StoredUser | null {
 	return dataManager.loadUserBySuffix(suffix);
+}
+
+export function listUsers(): App.UserProfile[] {
+	const users = dataManager.loadUsers();
+
+	return users.map((user) => {
+		return {
+			username: user.username,
+			urlSuffix: user.urlSuffix,
+			isAdmin: user.isAdmin,
+			theme: user.theme,
+			language: user.language
+		};
+	});
+}
+
+export async function createUser(input: {
+	username: string;
+	password: string;
+	urlSuffix: string;
+	isAdmin: boolean;
+	theme: App.ThemeMode;
+	language: App.Locale;
+}) {
+	const existingUser = findUserByUsername(input.username);
+	if (existingUser) {
+		return null;
+	}
+
+	const passwordHash = await argon2.hash(input.password, {
+		type: argon2.argon2id
+	});
+
+	const nextUser: Data.StoredUser = {
+		username: input.username,
+		passwordHash,
+		urlSuffix: input.urlSuffix,
+		isAdmin: input.isAdmin,
+		theme: input.theme,
+		language: input.language
+	};
+
+	dataManager.saveUser(nextUser);
+	msg.createMessageSettings(nextUser.username);
+	txt.setTextForSuffix(nextUser.urlSuffix, 'This is your default text. You can change it by editing the text in the configuration page.');
+
+	return toPublicUserProfile(nextUser);
+}
+
+export function deleteUser(username: string) {
+	const existingUser = findUserByUsername(username);
+	if (!existingUser) {
+		return false;
+	}
+
+	dataManager.removeSessionsByUsername(existingUser.username);
+	dataManager.removeSettingsByUsername(existingUser.username);
+	dataManager.removeTextBySuffix(existingUser.urlSuffix);
+	dataManager.deleteUser(existingUser.username);
+
+	return true;
 }
 
 export async function updateUserSuffix(cookies: Cookies, suffix: string): Promise<App.UserProfile | null> {
