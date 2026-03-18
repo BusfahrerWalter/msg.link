@@ -5,17 +5,23 @@ declare global {
 		interface UserProfile {
 			username: string;
 			urlSuffix: string;
+			isAdmin: boolean;
+			theme: string;
+			language: string;
 		}
 
 		type ApiResponse<TPayload extends object = object> = {
 			code: string;
+			success: boolean;
 		} & TPayload;
 
 		type TextApiResponse = ApiResponse<{
 			text?: string | null;
 		}>;
 
-		type MessageSettingsApiResponse = ApiResponse<Partial<Data.StoredMessageSettings>>;
+		type MessageSettingsApiResponse = ApiResponse<{
+			settings: Partial<Data.StoredMessageSettings>;
+		}>;
 
 		type AuthApiResponse = ApiResponse<{
 			authenticated: boolean;
@@ -28,7 +34,7 @@ declare global {
 			user?: UserProfile;
 		}>;
 
-		type SidebarTab = 'message-settings' | 'user-settings' | 'general-settings' | 'manage-users';
+		type SidebarTab = 'message-settings' | 'user-settings' | 'preferences' | 'manage-users' | 'statistics' | 'admin-settings';
 	}
 
 	namespace Data {
@@ -36,6 +42,9 @@ declare global {
 			username: string;
 			passwordHash: string;
 			urlSuffix: string;
+			isAdmin: boolean;
+			theme: string;
+			language: string;
 		}
 
 		interface StoredMessage {
@@ -47,7 +56,6 @@ declare global {
 
 		interface StoredMessageSettings {
 			type: MessageType;
-			content: string;
 			color: string;
 			background: string;
 			fontSize: string;

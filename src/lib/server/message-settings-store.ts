@@ -1,13 +1,12 @@
 import { dataManager } from '$lib/server/data/DataManager';
 
-const defaultSettings: Data.StoredMessageSettings = {
+export const defaultSettings: Data.StoredMessageSettings = {
 	type: 'text',
-	content: '',
 	color: '#000000',
 	background: '#ffffff',
 	fontSize: '16px',
 	font: 'Arial, sans-serif'
-};
+} as const;
 
 function sanitizeUsername(username: string) {
 	const normalizedUsername = username.trim();
@@ -33,7 +32,6 @@ function sanitizeStringField(value: unknown, fallbackValue = '') {
 function sanitizeMessageSettings(settings: Data.StoredMessageSettings): Data.StoredMessageSettings {
 	return {
 		type: sanitizeMessageType(settings.type),
-		content: sanitizeStringField(settings.content, defaultSettings.content),
 		color: sanitizeStringField(settings.color, defaultSettings.color),
 		background: sanitizeStringField(settings.background, defaultSettings.background),
 		fontSize: sanitizeStringField(settings.fontSize, defaultSettings.fontSize),

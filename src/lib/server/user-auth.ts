@@ -8,10 +8,10 @@ import * as msg from '$lib/server/message-settings-store';
 
 const userSessionCookieName = 'user_session';
 const defaultSessionDays = 7;
-const defaultAdminPassword = 'admin123';
-const defaultAdminUsername = 'admin';
+const defaultAdminPassword = (env.DEFAULT_ADMIN_PASSWORD ?? 'admin123').trim();
+const defaultAdminUsername = (env.DEFAULT_ADMIN_USERNAME ?? 'admin').trim();
 
-ensureDefaultUserExists();
+ensureDefaultUser();
 
 function getSessionLifetimeDays() {
 	const configuredDays = Number(env.USER_SESSION_TTL_DAYS ?? defaultSessionDays);
@@ -42,36 +42,35 @@ function isSessionExpired(session: Data.StoredSession) {
 function toPublicUserProfile(user: Data.StoredUser): App.UserProfile {
 	return {
 		username: user.username,
-		urlSuffix: user.urlSuffix
+		urlSuffix: user.urlSuffix,
+		isAdmin: user.isAdmin,
+		theme: user.theme,
+		language: user.language
 	};
 }
 
-async function saveUser(user: Data.StoredUser) {
-	dataManager.saveUser(user);
-}
-
-async function ensureDefaultUserExists() {
-	const username = (env.DEFAULT_ADMIN_USERNAME ?? defaultAdminUsername).trim();
-	const password = (env.DEFAULT_ADMIN_PASSWORD ?? defaultAdminPassword).trim();
-
-	const existingDefaultUser = dataManager.loadUser(username);
+async function ensureDefaultUser() {
+	const existingDefaultUser = dataManager.loadUser(defaultAdminUsername);
 	if (existingDefaultUser) {
 		return;
 	}
 
-	const generatedHash = await argon2.hash(password, {
+	const generatedHash = await argon2.hash(defaultAdminPassword, {
 		type: argon2.argon2id
 	});
 
 	const defaultUser: Data.StoredUser = {
-		username,
+		username: defaultAdminUsername,
 		passwordHash: generatedHash,
-		urlSuffix: username
+		urlSuffix: defaultAdminUsername,
+		isAdmin: true,
+		theme: 'light',
+		language: 'en'
 	};
 
-	saveUser(defaultUser);
-	msg.createMessageSettings(username);
-	txt.setTextForSuffix(username, 'Hello, world! This is your default text. You can change it by editing the text in the configuration page.');
+	dataManager.saveUser(defaultUser);
+	msg.createMessageSettings(defaultAdminUsername);
+	txt.setTextForSuffix(defaultAdminUsername, 'This is your default text. You can change it by editing the text in the configuration page.');
 }
 
 function findUserByUsername(username: string): Data.StoredUser | null {
@@ -153,16 +152,15 @@ export async function getAuthenticatedUser(cookies: Cookies): Promise<App.UserPr
 	return toPublicUserProfile(user);
 }
 
+export function isSuffixInUse(suffix: string): boolean {
+	return dataManager.isSuffixInUse(suffix);
+}
+
+export function findUserBySuffix(suffix: string): Data.StoredUser | null {
+	return dataManager.loadUserBySuffix(suffix);
+}
+
 export async function updateUserSuffix(cookies: Cookies, suffix: string): Promise<App.UserProfile | null> {
-	if (!suffix || typeof suffix !== 'string') {
-		return null;
-	}
-
-	const requestedSuffix = suffix.trim();
-	if (requestedSuffix.length === 0 || requestedSuffix.length > 50) {
-		return null;
-	}
-
 	const session = await getSessionFromCookie(cookies);
 	if (!session) {
 		return null;
@@ -173,19 +171,40 @@ export async function updateUserSuffix(cookies: Cookies, suffix: string): Promis
 		return null;
 	}
 
-	const suffixInUse = dataManager.isSuffixInUse(requestedSuffix);
-	if (suffixInUse) {
+	const previousSuffix = user.urlSuffix;
+	const updatedUserInfo = {
+		...user,
+		urlSuffix: suffix
+	};
+
+	dataManager.saveUser(updatedUserInfo);
+	txt.moveTextToSuffix(previousSuffix, suffix);
+
+	return toPublicUserProfile(updatedUserInfo);
+}
+
+export async function updateUserProfile(
+	cookies: Cookies,
+	updates: { urlSuffix?: string; theme?: string; language?: string }
+): Promise<App.UserProfile | null> {
+	const session = await getSessionFromCookie(cookies);
+	if (!session) {
+		return null;
+	}
+
+	const user = findUserByUsername(session.username);
+	if (!user) {
 		return null;
 	}
 
 	const previousSuffix = user.urlSuffix;
-	const updatedUserInfo = {
-		...user,
-		urlSuffix: requestedSuffix
-	};
+	const updatedUserInfo = { ...user, ...updates };
 
-	saveUser(updatedUserInfo);
-	txt.moveTextToSuffix(previousSuffix, requestedSuffix);
+	dataManager.saveUser(updatedUserInfo);
+
+	if (updates.urlSuffix && updates.urlSuffix !== previousSuffix) {
+		txt.moveTextToSuffix(previousSuffix, updates.urlSuffix);
+	}
 
 	return toPublicUserProfile(updatedUserInfo);
 }
@@ -215,7 +234,7 @@ export async function updateUserPassword(cookies: Cookies, currentPassword: stri
 		passwordHash: nextPasswordHash
 	};
 
-	saveUser(updatedUserInfo);
+	dataManager.saveUser(updatedUserInfo);
 	return true;
 }
 

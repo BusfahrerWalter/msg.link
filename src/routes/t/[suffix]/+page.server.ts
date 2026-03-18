@@ -2,15 +2,21 @@ import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ fetch, params }) => {
-	const response = await fetch(`/api/text?suffix=${encodeURIComponent(params.suffix)}`);
-	const payload: App.TextApiResponse = await response.json().catch(() => null);
+	const suffix = encodeURIComponent(params.suffix);
 
-	if (!payload || !payload.text) {
+	const textResponse = await fetch(`/api/text?suffix=${suffix}`);
+	const settingsResponse = await fetch(`/api/settings/public/${suffix}`);
+
+	const textPayload: App.TextApiResponse = await textResponse.json().catch(() => null);
+	const settingsPayload: App.MessageSettingsApiResponse = await settingsResponse.json().catch(() => null);
+
+	if (!textPayload || !textPayload.success || !settingsPayload || !settingsPayload.success) {
 		throw error(404);
 	}
 
 	return {
-		...payload,
+		text: textPayload.text,
+		settings: settingsPayload.settings,
 		suffix: params.suffix
 	};
 };
