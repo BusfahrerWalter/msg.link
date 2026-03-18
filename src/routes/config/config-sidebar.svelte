@@ -12,11 +12,11 @@
 
 	type Props = {
 		user: App.UserProfile;
-		onTabChange?: (tab: App.SidebarTab) => void;
+		currentTab: App.SidebarTab;
 		onLogout?: () => void;
 	};
 
-	const { user, onTabChange, onLogout }: Props = $props();
+	const { user, currentTab, onLogout }: Props = $props();
 
 	let topItems = $state<any[]>([]);
 	let adminItems = $state<any[]>([]);
@@ -24,41 +24,47 @@
 
 	$effect(() => {
 		topItems = [{
+			tab: 'message-settings',
 			title: m.sidebar_message_settings(),
-			icon: MsgIcon,
-			onClick: () => onTabChange?.('message-settings'),
+			url: '/config/message-settings',
+			icon: MsgIcon
 		}, {
+			tab: 'user-settings',
 			title: m.sidebar_user_settings(),
-			icon: UserIcon,
-			onClick: () => onTabChange?.('user-settings'),
+			url: '/config/user-settings',
+			icon: UserIcon
 		}, {
+			tab: 'preferences',
 			title: m.sidebar_preferences(),
-			icon: SettingsIcon,
-			onClick: () => onTabChange?.('preferences'),
+			url: '/config/preferences',
+			icon: SettingsIcon
 		}, {
+			tab: 'statistics',
 			title: m.sidebar_statistics(),
-			icon: StatsIcon,
-			onClick: () => onTabChange?.('statistics'),
+			url: '/config/statistics',
+			icon: StatsIcon
 		}];
 
 		adminItems = [{
+			tab: 'manage-users',
 			title: m.config_manage_users(),
-			icon: UsersIcon,
-			onClick: () => onTabChange?.('manage-users'),
+			url: '/config/manage-users',
+			icon: UsersIcon
 		}, {
+			tab: 'admin-settings',
 			title: m.config_application_settings(),
-			icon: AppSettingsIcon,
-			onClick: () => onTabChange?.('admin-settings'),
+			url: '/config/admin-settings',
+			icon: AppSettingsIcon
 		}];
 
 		bottomItems = [{
 			title: m.sidebar_show_my_page(),
 			url: `/t/${user.urlSuffix || user.username}?preview=true`,
-			icon: EyeIcon,
+			icon: EyeIcon
 		}, {
 			title: m.common_logout(),
 			icon: LogoutIcon,
-			onClick: onLogout,
+			onClick: onLogout
 		}];
 	});
 </script>
@@ -72,14 +78,21 @@
 			<Sidebar.Menu>
 				{#each items as item (item.title)}
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton onclick={item.onClick} tooltipContent={item.title}>
-							{#snippet child({ props })}
-								<a href={item.url} {...props}>
-									<item.icon />
-									<span>{item.title}</span>
-								</a>
-							{/snippet}
-						</Sidebar.MenuButton>
+						{#if item.url}
+							<Sidebar.MenuButton isActive={item.tab === currentTab} tooltipContent={item.title}>
+								{#snippet child({ props })}
+									<a href={item.url} {...props}>
+										<item.icon />
+										<span>{item.title}</span>
+									</a>
+								{/snippet}
+							</Sidebar.MenuButton>
+						{:else}
+							<Sidebar.MenuButton onclick={item.onClick} tooltipContent={item.title}>
+								<item.icon />
+								<span>{item.title}</span>
+							</Sidebar.MenuButton>
+						{/if}
 					</Sidebar.MenuItem>
 				{/each}
 			</Sidebar.Menu>
@@ -89,7 +102,7 @@
 
 <Sidebar.Root>
 	<Sidebar.Content>
-		{@render section(topItems, m.app_title())}
+		{@render section(topItems, m.sidebar_navigation())}
 
 		{#if user.isAdmin}
 			{@render section(adminItems, m.sidebar_administrator())}

@@ -51,18 +51,13 @@
 		});
 
 		const payload = await readPayload(response);
-		switch (payload?.code) {
-			case 'INVALID_USERNAME':
-				message = m.login_invalid_username();
-				break;
-			case 'INVALID_PASSWORD':
-				message = m.login_invalid_password();
-				break;
-			case 'INVALID_CREDENTIALS':
-				message = m.login_invalid_credentials();
-				break;
-			default:
-				message = m.login_request_failed();
+		if (payload && !payload.success) {
+			switch (payload?.code) {
+				case 'INVALID_USERNAME': message = m.login_invalid_username(); break;
+				case 'INVALID_PASSWORD': message = m.login_invalid_password(); break;
+				case 'INVALID_CREDENTIALS': message = m.login_invalid_credentials(); break;
+				default: message = m.login_request_failed();
+			}
 		}
 
 		if (!response.ok) {

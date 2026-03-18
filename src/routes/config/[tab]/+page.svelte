@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ConfigPage from './config-page.svelte';
+	import ConfigPage from '../config-page.svelte';
 
 	type Props = {
 		data: {
