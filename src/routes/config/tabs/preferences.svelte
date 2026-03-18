@@ -3,8 +3,11 @@
 	import Button from "@/components/ui/button/button.svelte";
 	import { setMode } from 'mode-watcher';
 
-	import { toMode } from "$src/util";
 	import Dropdown from '@/components/dropdown.svelte';
+
+	import { toMode } from "$src/util";
+	import * as m from '$lib/paraglide/messages';
+	import { setLocale } from '$lib/paraglide/runtime';
 
 	type Props = {
 		currentUser: App.UserProfile | null;
@@ -14,16 +17,16 @@
 		currentUser = $bindable(null)
 	}: Props = $props();
 
-	const themes = [
-		{ value: 'light', label: 'Light' },
-		{ value: 'dark', label: 'Dark' },
-		{ value: 'system', label: 'System' }
-	];
+	const themes = $derived([
+		{ value: 'light', label: m.preferences_light() },
+		{ value: 'dark', label: m.preferences_dark() },
+		{ value: 'system', label: m.preferences_system() }
+	]);
 
-	const languages = [
-		{ value: 'en', label: 'English' },
-		{ value: 'de', label: 'German' }
-	];
+	const languages = $derived([
+		{ value: 'en', label: m.preferences_english() },
+		{ value: 'de', label: m.preferences_german() }
+	]);
 
 	async function saveProfile(event: SubmitEvent) {
 		event.preventDefault();
@@ -49,19 +52,20 @@
 
 		if (response.ok) {
 			setMode(toMode(currentUser.theme));
+			setLocale(currentUser.language);
 		}
 	}
 </script>
 
 <form class="min-w-form space-y-3 mb-5" onsubmit={saveProfile}>
-	<h2>Preferences</h2>
+	<h2>{m.preferences_title()}</h2>
 	<Label>
-		<span>Color theme</span>
+		<span>{m.preferences_color_theme()}</span>
 		<Dropdown values={themes} bind:value={currentUser!.theme} required />
 	</Label>
 	<Label>
-		<span>Language</span>
+		<span>{m.common_language()}</span>
 		<Dropdown values={languages} bind:value={currentUser!.language} required />
 	</Label>
-	<Button type="submit">Apply</Button>
+	<Button type="submit">{m.common_apply()}</Button>
 </form>

@@ -8,6 +8,7 @@
 	import StatsIcon from '@lucide/svelte/icons/chart-column';
 	import AppSettingsIcon from '@lucide/svelte/icons/settings-2';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import * as m from '$lib/paraglide/messages';
 
 	type Props = {
 		user: App.UserProfile;
@@ -23,39 +24,39 @@
 
 	$effect(() => {
 		topItems = [{
-			title: 'Message settings',
+			title: m.sidebar_message_settings(),
 			icon: MsgIcon,
 			onClick: () => onTabChange?.('message-settings'),
 		}, {
-			title: 'User settings',
+			title: m.sidebar_user_settings(),
 			icon: UserIcon,
 			onClick: () => onTabChange?.('user-settings'),
 		}, {
-			title: 'Preferences',
+			title: m.sidebar_preferences(),
 			icon: SettingsIcon,
 			onClick: () => onTabChange?.('preferences'),
 		}, {
-			title: 'Statistics',
+			title: m.sidebar_statistics(),
 			icon: StatsIcon,
 			onClick: () => onTabChange?.('statistics'),
 		}];
 
 		adminItems = [{
-			title: 'Manage users',
+			title: m.config_manage_users(),
 			icon: UsersIcon,
 			onClick: () => onTabChange?.('manage-users'),
 		}, {
-			title: 'Application settings',
+			title: m.config_application_settings(),
 			icon: AppSettingsIcon,
 			onClick: () => onTabChange?.('admin-settings'),
 		}];
 
 		bottomItems = [{
-			title: 'Show my page',
+			title: m.sidebar_show_my_page(),
 			url: `/t/${user.urlSuffix || user.username}?preview=true`,
 			icon: EyeIcon,
 		}, {
-			title: 'Logout',
+			title: m.common_logout(),
 			icon: LogoutIcon,
 			onClick: onLogout,
 		}];
@@ -71,7 +72,7 @@
 			<Sidebar.Menu>
 				{#each items as item (item.title)}
 					<Sidebar.MenuItem>
-						<Sidebar.MenuButton onclick={item.onClick}>
+						<Sidebar.MenuButton onclick={item.onClick} tooltipContent={item.title}>
 							{#snippet child({ props })}
 								<a href={item.url} {...props}>
 									<item.icon />
@@ -88,10 +89,10 @@
 
 <Sidebar.Root>
 	<Sidebar.Content>
-		{@render section(topItems, 'Message.link')}
+		{@render section(topItems, m.app_title())}
 
 		{#if user.isAdmin}
-			{@render section(adminItems, 'Administrator')}
+			{@render section(adminItems, m.sidebar_administrator())}
 		{/if}
 
 		<div class="grow"></div>

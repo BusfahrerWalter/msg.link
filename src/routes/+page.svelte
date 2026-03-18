@@ -2,6 +2,7 @@
 	import ErrorPage from "$lib/components/error-page.svelte";
 	import Button from "@/components/ui/button/button.svelte";
 	import Input from "@/components/ui/input/input.svelte";
+	import * as m from '$lib/paraglide/messages';
 
 	let value = $state('');
 
@@ -22,8 +23,8 @@
 </script>
 
 <ErrorPage
-	title="Page not found"
-	description="Try entering a valid URL suffix to see a page."
+	title={m.error_not_found_title()}
+	description={m.home_not_found_description()}
 	animate={false}
 >
 	<div class="flex flex-row gap-1 justify-center mb-4">
@@ -32,8 +33,8 @@
 			bind:value={value}
 			onkeydown={handleInput}
 		/>
-		<Button onclick={go}>Go</Button>
+		<Button onclick={go}>{m.common_go()}</Button>
 	</div>
-	<Button variant="link" href="/login">Login</Button>
+	<Button variant="link" href="/login">{m.common_login()}</Button>
 </ErrorPage>
 

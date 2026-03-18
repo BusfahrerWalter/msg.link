@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from "@/components/ui/button/button.svelte";
+	import * as m from '$lib/paraglide/messages';
 
 	type Props = {
 		data: {
@@ -35,6 +36,18 @@
 			globalThis.document.body.style.backgroundSize = 'cover';
 			globalThis.document.body.style.backgroundPosition = 'center';
 		}
+
+		return () => {
+			if (!globalThis.document?.body) {
+				return;
+			}
+
+			// reset styles on unmount
+			globalThis.document.body.style.backgroundColor = '';
+			globalThis.document.body.style.backgroundImage = '';
+			globalThis.document.body.style.backgroundSize = '';
+			globalThis.document.body.style.backgroundPosition = '';
+		};
 	});
 </script>
 
@@ -53,7 +66,7 @@
 		href="/config"
 		variant="link"
 	>
-		← Back
+		← {m.preview_back()}
 	</Button>
 {/if}
 

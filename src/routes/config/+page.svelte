@@ -5,6 +5,7 @@
 	import UserSettings from "./tabs/user-settings.svelte";
 	import ContentSettings from "./tabs/content-settings.svelte";
 	import Preferences from "./tabs/preferences.svelte";
+	import * as m from '$lib/paraglide/messages';
 
 	type Props = {
 		data: {
@@ -42,17 +43,17 @@
 		redirectToLogin();
 	}
 
-	function getCurrentTabName() {
+	const currentTabName = $derived.by(() => {
 		switch (currentTab) {
-			case 'message-settings': return 'Message settings';
-			case 'user-settings': return 'User settings';
-			case 'preferences': return 'Preferences';
-			case 'manage-users': return 'Manage users';
-			case 'statistics': return 'Statistics';
-			case 'admin-settings': return 'Application settings';
+			case 'message-settings': return m.sidebar_message_settings();
+			case 'user-settings': return m.sidebar_user_settings();
+			case 'preferences': return m.sidebar_preferences();
+			case 'manage-users': return m.config_manage_users();
+			case 'statistics': return m.sidebar_statistics();
+			case 'admin-settings': return m.config_application_settings();
 			default: return '';
 		}
-	}
+	});
 </script>
 
 <Sidebar.Provider>
@@ -69,11 +70,11 @@
 				<Sidebar.Separator orientation="vertical" decorative={true} />
 
 				<p>
-					<span>{getCurrentTabName()}</span>
+					<span>{currentTabName}</span>
 				</p>
 				<div class="grow"></div>
 				<p>
-					<span>Logged in as:</span>
+					<span>{m.config_logged_in_as()}</span>
 					<span class="font-semibold">{currentUser.username}</span>
 				</p>
 			</div>
@@ -96,8 +97,8 @@
 						/>
 					{:else if currentTab === 'manage-users'}
 						<form class="min-w-form space-y-3">
-							<h2>Manage users</h2>
-							<p>Nothing here yet.</p>
+							<h2>{m.config_manage_users()}</h2>
+							<p>{m.config_nothing_here()}</p>
 						</form>
 					{/if}
 				</div>
@@ -107,5 +108,5 @@
 </Sidebar.Provider>
 
 <svelte:head>
-	<title>User configuration</title>
+	<title>{m.app_user_configuration()}</title>
 </svelte:head>

@@ -185,7 +185,7 @@ export async function updateUserSuffix(cookies: Cookies, suffix: string): Promis
 
 export async function updateUserProfile(
 	cookies: Cookies,
-	updates: { urlSuffix?: string; theme?: string; language?: string }
+	updates: { urlSuffix?: string; theme?: App.ThemeMode; language?: App.Locale }
 ): Promise<App.UserProfile | null> {
 	const session = await getSessionFromCookie(cookies);
 	if (!session) {

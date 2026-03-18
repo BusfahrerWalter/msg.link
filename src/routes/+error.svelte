@@ -1,12 +1,13 @@
 <script>
 	import ErrorPage from "$lib/components/error-page.svelte";
 	import Button from "@/components/ui/button/button.svelte";
+	import * as m from '$lib/paraglide/messages';
 </script>
 
 <ErrorPage
 	code={404}
-	title="Page not found"
-	description="The URL you entered wandered off into the void."
+	title={m.error_not_found_title()}
+	description={m.error_not_found_description()}
 >
-	<Button href="/" variant="link">← Back to safety</Button>
+	<Button href="/" variant="link">← {m.common_back_safety()}</Button>
 </ErrorPage>

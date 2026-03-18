@@ -3,6 +3,7 @@
 	import Label from "@/components/ui/label/label.svelte";
 	import Input from "@/components/ui/input/input.svelte";
 	import Button from "@/components/ui/button/button.svelte";
+	import * as m from '$lib/paraglide/messages';
 
 	const maxSuffixLength = Number(env.PUBLIC_MAX_SUFFIX_LENGTH ?? '280');
 	const minPasswordLength = Number(env.PUBLIC_MIN_PASSWORD_LENGTH ?? '6');
@@ -70,9 +71,9 @@
 </script>
 
 <form class="min-w-form space-y-3 mb-5" onsubmit={saveProfile}>
-	<h2>Change URL suffix</h2>
+	<h2>{m.user_change_url_suffix()}</h2>
 	<Label>
-		<span>URL suffix</span>
+		<span>{m.user_url_suffix()}</span>
 		<Input
 			type="text"
 			bind:value={currentUser!.urlSuffix}
@@ -80,13 +81,13 @@
 			required
 		/>
 	</Label>
-	<Button type="submit">Apply</Button>
+	<Button type="submit">{m.common_apply()}</Button>
 </form>
 
 <form class="min-w-form space-y-3" onsubmit={changePassword}>
-	<h2>Change password</h2>
+	<h2>{m.user_change_password()}</h2>
 	<Label>
-		<span>Current password</span>
+		<span>{m.user_current_password()}</span>
 		<Input
 			type="password"
 			bind:value={currentPassword}
@@ -97,7 +98,7 @@
 		/>
 	</Label>
 	<Label>
-		<span>New password</span>
+		<span>{m.user_new_password()}</span>
 		<Input
 			type="password"
 			bind:value={newPassword}
@@ -107,5 +108,5 @@
 			required
 		/>
 	</Label>
-	<Button type="submit">Update password</Button>
+	<Button type="submit">{m.user_update_password()}</Button>
 </form>

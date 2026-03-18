@@ -35,7 +35,11 @@ export const GET: RequestHandler = async ({ cookies }) => {
  */
 export const PATCH: RequestHandler = async ({ cookies, request }) => {
 	const requestBody = await request.json().catch(() => null);
-	const updates: { urlSuffix?: string; theme?: string; language?: string } = {};
+	const updates: {
+		urlSuffix?: string;
+		theme?: App.ThemeMode;
+		language?: App.Locale;
+	} = {};
 
 	// validate urlSuffix if provided
 	if (requestBody?.urlSuffix !== undefined) {
@@ -73,7 +77,7 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 		const isString = typeof theme === 'string';
 		const trimmedTheme = isString ? theme.trim() : '';
 
-		if (!isString || trimmedTheme.length === 0) {
+		if (!isString || (trimmedTheme !== 'light' && trimmedTheme !== 'dark' && trimmedTheme !== 'system')) {
 			const payload: App.UserApiResponse = {
 				authenticated: false,
 				code: 'INVALID_THEME',
@@ -102,7 +106,7 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 			return json(payload, { status: 400 });
 		}
 
-		updates.language = trimmedLanguage;
+		updates.language = trimmedLanguage as App.Locale;
 	}
 
 	if (Object.keys(updates).length === 0) {

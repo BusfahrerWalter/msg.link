@@ -6,8 +6,8 @@ declare global {
 			username: string;
 			urlSuffix: string;
 			isAdmin: boolean;
-			theme: string;
-			language: string;
+			theme: ThemeMode;
+			language: Locale;
 		}
 
 		type ApiResponse<TPayload extends object = object> = {
@@ -35,6 +35,7 @@ declare global {
 		}>;
 
 		type ThemeMode = 'light' | 'dark' | 'system';
+		type Locale = 'en' | 'de';
 		type SidebarTab = 'message-settings' | 'user-settings' | 'preferences' | 'manage-users' | 'statistics' | 'admin-settings';
 	}
 
@@ -44,8 +45,8 @@ declare global {
 			passwordHash: string;
 			urlSuffix: string;
 			isAdmin: boolean;
-			theme: string;
-			language: string;
+			theme: App.ThemeMode;
+			language: App.Locale;
 		}
 
 		interface StoredMessage {
@@ -68,8 +69,6 @@ declare global {
 			username: string;
 			expiresAt: string;
 		}
-
-		type TableName = 'users' | 'sessions' | 'texts' | 'settings';
 	}
 }
 

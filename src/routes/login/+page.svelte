@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Button from "@/components/ui/button/button.svelte";
 	import LoginPage from "./login-page.svelte";
+	import * as m from '$lib/paraglide/messages';
 
 	type Props = {
 		data: {
@@ -50,7 +51,19 @@
 		});
 
 		const payload = await readPayload(response);
-		message = typeof payload?.message === 'string' ? payload.message : 'Request failed';
+		switch (payload?.code) {
+			case 'INVALID_USERNAME':
+				message = m.login_invalid_username();
+				break;
+			case 'INVALID_PASSWORD':
+				message = m.login_invalid_password();
+				break;
+			case 'INVALID_CREDENTIALS':
+				message = m.login_invalid_credentials();
+				break;
+			default:
+				message = m.login_request_failed();
+		}
 
 		if (!response.ok) {
 			return;
@@ -68,9 +81,9 @@
 	/>
 
 	<p class="mt-2 text-destructive">{message}</p>
-	<Button href="/" variant="link">← Back to home</Button>
+	<Button href="/" variant="link">← {m.common_back_home()}</Button>
 </main>
 
 <svelte:head>
-	<title>Login</title>
+	<title>{m.app_login()}</title>
 </svelte:head>
