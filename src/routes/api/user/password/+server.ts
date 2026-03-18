@@ -1,10 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '$lib/public-env';
 import * as auth from '@/server/user-auth';
-
-const minPasswordLength = Number(env.PUBLIC_MIN_PASSWORD_LENGTH ?? '6');
-const maxPasswordLength = Number(env.PUBLIC_MAX_PASSWORD_LENGTH ?? '50');
 
 /**
  * Update user password
@@ -32,7 +29,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const isNewPwString = typeof newPassword === 'string';
 	const trimmedNewPw = isNewPwString ? newPassword.trim() : '';
 
-	if (!isNewPwString || trimmedNewPw.length < minPasswordLength || trimmedNewPw.length > maxPasswordLength) {
+	if (!isNewPwString || trimmedNewPw.length < MIN_PASSWORD_LENGTH || trimmedNewPw.length > MAX_PASSWORD_LENGTH) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
 			code: 'NEW_PASSWORD_INVALID_LENGTH',

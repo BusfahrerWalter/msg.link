@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
 	import Label from "@/components/ui/label/label.svelte";
 	import Input from "@/components/ui/input/input.svelte";
 	import Button from "@/components/ui/button/button.svelte";
-	import * as m from '$lib/paraglide/messages';
 
-	const maxSuffixLength = Number(env.PUBLIC_MAX_SUFFIX_LENGTH ?? '280');
-	const minPasswordLength = Number(env.PUBLIC_MIN_PASSWORD_LENGTH ?? '6');
-	const maxPasswordLength = Number(env.PUBLIC_MAX_PASSWORD_LENGTH ?? '50');
+	import * as m from '$lib/paraglide/messages';
+	import {
+		MAX_PASSWORD_LENGTH,
+		MAX_SUFFIX_LENGTH,
+		MIN_PASSWORD_LENGTH
+	} from '$lib/public-env';
+	import { type ApiToastMap, getCode, notifyToast, readPayload } from '$lib/api-toast';
 
 	type Props = {
 		currentUser: App.UserProfile | null;
@@ -20,9 +22,20 @@
 	let currentPassword = $state('');
 	let newPassword = $state('');
 
-	async function readPayload(response: Response) {
-		return (await response.json().catch(() => null)) as Record<string, unknown> | null;
-	}
+	const profileToastMap = {
+		AUTH_REQUIRED: { message: m.manage_users_auth_required() },
+		INVALID_URL_SUFFIX: { message: m.manage_users_invalid_suffix() },
+		URL_SUFFIX_IN_USE: { message: m.manage_users_suffix_in_use() },
+		USER_PROFILE_UPDATE_SUCCESS: { message: m.common_apply(), variant: 'success' }
+	} satisfies ApiToastMap;
+
+	const passwordToastMap = {
+		AUTH_REQUIRED: { message: m.manage_users_auth_required() },
+		CURRENT_PASSWORD_REQUIRED: { message: m.login_invalid_password() },
+		NEW_PASSWORD_INVALID_LENGTH: { message: m.login_invalid_password() },
+		INVALID_CURRENT_PASSWORD: { message: m.login_invalid_password() },
+		PASSWORD_CHANGE_SUCCESS: { message: m.user_update_password(), variant: 'success' }
+	} satisfies ApiToastMap;
 
 	async function saveProfile(event: SubmitEvent) {
 		event.preventDefault();
@@ -39,14 +52,20 @@
 		});
 
 		const payload = await readPayload(response);
+		const code = getCode(payload);
 		if (!response.ok) {
 			if (response.status === 401) {
+				notifyToast(code, profileToastMap, m.login_request_failed());
 				currentUser = null;
+				return;
 			}
+
+			notifyToast(code, profileToastMap, m.login_request_failed());
 			return;
 		}
 
 		currentUser = (payload?.user as App.UserProfile | undefined) ?? currentUser;
+		notifyToast(code, profileToastMap, m.common_apply());
 	}
 
 	async function changePassword(event: SubmitEvent) {
@@ -58,15 +77,23 @@
 			body: JSON.stringify({ currentPassword, newPassword })
 		});
 
+		const payload = await readPayload(response);
+		const code = getCode(payload);
+
 		if (!response.ok) {
 			if (response.status === 401) {
+				notifyToast(code, passwordToastMap, m.login_request_failed());
 				currentUser = null;
+				return;
 			}
+
+			notifyToast(code, passwordToastMap, m.login_request_failed());
 			return;
 		}
 
 		currentPassword = '';
 		newPassword = '';
+		notifyToast(code, passwordToastMap, m.user_update_password());
 	}
 </script>
 
@@ -77,7 +104,7 @@
 		<Input
 			type="text"
 			bind:value={currentUser!.urlSuffix}
-			maxlength={maxSuffixLength}
+			maxlength={MAX_SUFFIX_LENGTH}
 			required
 		/>
 	</Label>
@@ -92,8 +119,8 @@
 			type="password"
 			bind:value={currentPassword}
 			autocomplete="current-password"
-			minlength={minPasswordLength}
-			maxlength={maxPasswordLength}
+			minlength={MIN_PASSWORD_LENGTH}
+			maxlength={MAX_PASSWORD_LENGTH}
 			required
 		/>
 	</Label>
@@ -103,8 +130,8 @@
 			type="password"
 			bind:value={newPassword}
 			autocomplete="new-password"
-			minlength={minPasswordLength}
-			maxlength={maxPasswordLength}
+			minlength={MIN_PASSWORD_LENGTH}
+			maxlength={MAX_PASSWORD_LENGTH}
 			required
 		/>
 	</Label>

@@ -1,11 +1,8 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
 import * as auth from '@/server/user-auth';
 import * as txt from '$lib/server/text-store';
-
-const maxTextLength = Number(env.PUBLIC_MAX_CONTENT_LENGTH ?? '280');
-const maxSuffixLength = Number(env.PUBLIC_MAX_SUFFIX_LENGTH ?? '280');
+import { MAX_CONTENT_LENGTH, MAX_SUFFIX_LENGTH } from '$lib/public-env';
 
 /**
  * Load text content for a given URL suffix
@@ -17,7 +14,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	const isSuffixString = typeof suffix === 'string';
 	const trimmedSuffix = suffix.trim();
 
-	if (!isSuffixString || trimmedSuffix.length === 0 || trimmedSuffix.length > maxSuffixLength) {
+	if (!isSuffixString || trimmedSuffix.length === 0 || trimmedSuffix.length > MAX_SUFFIX_LENGTH) {
 		const payload: App.TextApiResponse = {
 			code: 'INVALID_SUFFIX',
 			success: false
@@ -64,7 +61,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const isTextString = typeof text === 'string';
 	const trimmedText = isTextString ? text.trim() : '';
 
-	if (!isTextString || trimmedText.length === 0 || trimmedText.length > maxTextLength) {
+	if (!isTextString || trimmedText.length === 0 || trimmedText.length > MAX_CONTENT_LENGTH) {
 		const payload: App.TextApiResponse = {
 			code: 'INVALID_TEXT_LENGTH',
 			success: false

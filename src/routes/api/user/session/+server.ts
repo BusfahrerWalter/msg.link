@@ -1,12 +1,12 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
 import * as auth from '@/server/user-auth';
-
-const minUsernameLength = Number(env.PUBLIC_MIN_USERNAME_LENGTH ?? '2');
-const maxUsernameLength = Number(env.PUBLIC_MAX_USERNAME_LENGTH ?? '50');
-const minPasswordLength = Number(env.PUBLIC_MIN_PASSWORD_LENGTH ?? '6');
-const maxPasswordLength = Number(env.PUBLIC_MAX_PASSWORD_LENGTH ?? '50');
+import {
+	MAX_PASSWORD_LENGTH,
+	MAX_USERNAME_LENGTH,
+	MIN_PASSWORD_LENGTH,
+	MIN_USERNAME_LENGTH
+} from '$lib/public-env';
 
 /**
  * Check if user session is active and return user info if authenticated
@@ -37,7 +37,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const isUsernameString = typeof username === 'string';
 	const trimmedUsername = isUsernameString ? username.trim() : '';
 
-	if (!isUsernameString || trimmedUsername.length < minUsernameLength || trimmedUsername.length > maxUsernameLength) {
+	if (!isUsernameString || trimmedUsername.length < MIN_USERNAME_LENGTH || trimmedUsername.length > MAX_USERNAME_LENGTH) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
 			code: 'INVALID_USERNAME',
@@ -51,7 +51,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const isPasswordString = typeof password === 'string';
 	const trimmedPassword = isPasswordString ? password.trim() : '';
 
-	if (!isPasswordString || trimmedPassword.length < minPasswordLength || trimmedPassword.length > maxPasswordLength) {
+	if (!isPasswordString || trimmedPassword.length < MIN_PASSWORD_LENGTH || trimmedPassword.length > MAX_PASSWORD_LENGTH) {
 		const payload: App.AuthApiResponse = {
 			authenticated: false,
 			code: 'INVALID_PASSWORD',

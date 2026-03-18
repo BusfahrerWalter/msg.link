@@ -1,61 +1,55 @@
 <script lang="ts">
-	import { env } from '$env/dynamic/public';
 	import Label from '@/components/ui/label/label.svelte';
 	import Input from '@/components/ui/input/input.svelte';
 	import Button from '@/components/ui/button/button.svelte';
-	import * as m from '$lib/paraglide/messages';
 
-	const minUsernameLength = Number(env.PUBLIC_MIN_USERNAME_LENGTH ?? '2');
-	const maxUsernameLength = Number(env.PUBLIC_MAX_USERNAME_LENGTH ?? '50');
-	const minPasswordLength = Number(env.PUBLIC_MIN_PASSWORD_LENGTH ?? '6');
-	const maxPasswordLength = Number(env.PUBLIC_MAX_PASSWORD_LENGTH ?? '50');
-	const maxSuffixLength = Number(env.PUBLIC_MAX_SUFFIX_LENGTH ?? '20');
+	import * as m from '$lib/paraglide/messages';
+	import {
+		MAX_PASSWORD_LENGTH,
+		MAX_SUFFIX_LENGTH,
+		MAX_USERNAME_LENGTH,
+		MIN_PASSWORD_LENGTH,
+		MIN_USERNAME_LENGTH
+	} from '$lib/public-env';
+	import { type ApiToastMap, getCode, notifyToast, readPayload } from '$lib/api-toast';
 
 	let users = $state<App.UserProfile[]>([]);
 	let username = $state('');
 	let password = $state('');
 	let urlSuffix = $state('');
-	let statusMessage = $state('');
 	let loadingUsers = $state(false);
 	let creatingUser = $state(false);
 	let deletingUsername = $state('');
 
-	function setStatus(code: string, fallback = '') {
-		switch (code) {
-			case 'AUTH_REQUIRED': statusMessage = m.manage_users_auth_required(); break;
-			case 'ADMIN_REQUIRED': statusMessage = m.manage_users_admin_required(); break;
-			case 'INVALID_USERNAME': statusMessage = m.login_invalid_username(); break;
-			case 'INVALID_PASSWORD': statusMessage = m.login_invalid_password(); break;
-			case 'INVALID_URL_SUFFIX': statusMessage = m.manage_users_invalid_suffix(); break;
-			case 'USERNAME_IN_USE': statusMessage = m.manage_users_username_in_use(); break;
-			case 'URL_SUFFIX_IN_USE': statusMessage = m.manage_users_suffix_in_use(); break;
-			case 'USER_NOT_FOUND': statusMessage = m.manage_users_user_not_found(); break;
-			case 'USER_CREATE_SUCCESS': statusMessage = m.manage_users_create_success(); break;
-			case 'USER_DELETE_SUCCESS': statusMessage = m.manage_users_delete_success(); break;
-			case 'USERS_LOAD_SUCCESS': statusMessage = ''; break;
-			default: statusMessage = fallback || m.login_request_failed();
-		}
-	}
-
-	async function readPayload(response: Response) {
-		return (await response.json().catch(() => null)) as Record<string, unknown> | null;
-	}
+	const userManageToastMap = {
+		AUTH_REQUIRED: { message: m.manage_users_auth_required() },
+		ADMIN_REQUIRED: { message: m.manage_users_admin_required() },
+		INVALID_USERNAME: { message: m.login_invalid_username() },
+		INVALID_PASSWORD: { message: m.login_invalid_password() },
+		INVALID_URL_SUFFIX: { message: m.manage_users_invalid_suffix() },
+		USERNAME_IN_USE: { message: m.manage_users_username_in_use() },
+		URL_SUFFIX_IN_USE: { message: m.manage_users_suffix_in_use() },
+		USER_NOT_FOUND: { message: m.manage_users_user_not_found() },
+		USER_CREATE_SUCCESS: { message: m.manage_users_create_success(), variant: 'success' },
+		USER_DELETE_SUCCESS: { message: m.manage_users_delete_success(), variant: 'success' },
+		USERS_LOAD_SUCCESS: { message: '', variant: 'none' }
+	} satisfies ApiToastMap;
 
 	async function loadUsers() {
 		loadingUsers = true;
 
 		const response = await fetch('/api/user/manage');
 		const payload = await readPayload(response);
-		const code = typeof payload?.code === 'string' ? payload.code : '';
+		const code = getCode(payload);
 
 		if (!response.ok) {
-			setStatus(code);
+			notifyToast(code, userManageToastMap, m.login_request_failed());
 			loadingUsers = false;
 			return;
 		}
 
 		users = Array.isArray(payload?.users) ? (payload.users as App.UserProfile[]) : [];
-		setStatus(code);
+		notifyToast(code, userManageToastMap, m.login_request_failed());
 		loadingUsers = false;
 	}
 
@@ -76,8 +70,8 @@
 		});
 
 		const payload = await readPayload(response);
-		const code = typeof payload?.code === 'string' ? payload.code : '';
-		setStatus(code);
+		const code = getCode(payload);
+		notifyToast(code, userManageToastMap, m.login_request_failed());
 
 		if (response.ok) {
 			username = '';
@@ -101,8 +95,8 @@
 		});
 
 		const payload = await readPayload(response);
-		const code = typeof payload?.code === 'string' ? payload.code : '';
-		setStatus(code);
+		const code = getCode(payload);
+		notifyToast(code, userManageToastMap, m.login_request_failed());
 
 		if (response.ok) {
 			users = users.filter((user) => user.username !== usernameToDelete);
@@ -118,14 +112,14 @@
 
 <div class="space-y-6 min-w-form">
 	<form class="space-y-3" onsubmit={createUser}>
-		<h2>{m.config_manage_users()}</h2>
+		<h2>{m.manage_users_create_new_user()}</h2>
 		<Label>
 			<span>{m.login_form_username()}</span>
 			<Input
 				type="text"
 				bind:value={username}
-				minlength={minUsernameLength}
-				maxlength={maxUsernameLength}
+				minlength={MIN_USERNAME_LENGTH}
+				maxlength={MAX_USERNAME_LENGTH}
 				required
 			/>
 		</Label>
@@ -134,8 +128,8 @@
 			<Input
 				type="password"
 				bind:value={password}
-				minlength={minPasswordLength}
-				maxlength={maxPasswordLength}
+				minlength={MIN_PASSWORD_LENGTH}
+				maxlength={MAX_PASSWORD_LENGTH}
 				required
 			/>
 		</Label>
@@ -144,7 +138,7 @@
 			<Input
 				type="text"
 				bind:value={urlSuffix}
-				maxlength={maxSuffixLength}
+				maxlength={MAX_SUFFIX_LENGTH}
 			/>
 		</Label>
 
@@ -153,10 +147,7 @@
 		</Button>
 	</form>
 
-	{#if statusMessage}
-		<p class="text-sm text-muted-foreground">{statusMessage}</p>
-	{/if}
-
+	<h2 class="mb-3">{m.manage_users_user_list()}</h2>
 	<div class="overflow-auto border rounded-md">
 		<table class="w-full text-sm">
 			<thead class="border-b bg-muted/50">

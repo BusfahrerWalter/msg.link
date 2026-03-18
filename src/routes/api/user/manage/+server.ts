@@ -1,13 +1,13 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
+import {
+	MAX_PASSWORD_LENGTH,
+	MAX_SUFFIX_LENGTH,
+	MAX_USERNAME_LENGTH,
+	MIN_PASSWORD_LENGTH,
+	MIN_USERNAME_LENGTH
+} from '$lib/public-env';
 import * as auth from '@/server/user-auth';
-
-const minUsernameLength = Number(env.PUBLIC_MIN_USERNAME_LENGTH ?? '2');
-const maxUsernameLength = Number(env.PUBLIC_MAX_USERNAME_LENGTH ?? '50');
-const minPasswordLength = Number(env.PUBLIC_MIN_PASSWORD_LENGTH ?? '6');
-const maxPasswordLength = Number(env.PUBLIC_MAX_PASSWORD_LENGTH ?? '50');
-const maxSuffixLength = Number(env.PUBLIC_MAX_SUFFIX_LENGTH ?? '20');
 
 async function getAdminUser(cookies: Parameters<RequestHandler>[0]['cookies']) {
 	const user = await auth.getAuthenticatedUser(cookies);
@@ -70,7 +70,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 	const urlSuffixValue = typeof requestBody?.urlSuffix === 'string' ? requestBody.urlSuffix.trim() : '';
 	const urlSuffix = urlSuffixValue || username;
 
-	if (username.length < minUsernameLength || username.length > maxUsernameLength) {
+	if (username.length < MIN_USERNAME_LENGTH || username.length > MAX_USERNAME_LENGTH) {
 		const payload: App.ApiResponse = {
 			code: 'INVALID_USERNAME',
 			success: false
@@ -79,7 +79,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		return json(payload, { status: 400 });
 	}
 
-	if (password.length < minPasswordLength || password.length > maxPasswordLength) {
+	if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) {
 		const payload: App.ApiResponse = {
 			code: 'INVALID_PASSWORD',
 			success: false
@@ -88,7 +88,7 @@ export const POST: RequestHandler = async ({ cookies, request }) => {
 		return json(payload, { status: 400 });
 	}
 
-	if (urlSuffix.length === 0 || urlSuffix.length > maxSuffixLength) {
+	if (urlSuffix.length === 0 || urlSuffix.length > MAX_SUFFIX_LENGTH) {
 		const payload: App.ApiResponse = {
 			code: 'INVALID_URL_SUFFIX',
 			success: false
@@ -142,7 +142,7 @@ export const DELETE: RequestHandler = async ({ cookies, request }) => {
 	const requestBody = await request.json().catch(() => null);
 	const username = typeof requestBody?.username === 'string' ? requestBody.username.trim() : '';
 
-	if (username.length < minUsernameLength || username.length > maxUsernameLength) {
+	if (username.length < MIN_USERNAME_LENGTH || username.length > MAX_USERNAME_LENGTH) {
 		const payload: App.ApiResponse = {
 			code: 'INVALID_USERNAME',
 			success: false

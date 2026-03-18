@@ -51,7 +51,7 @@
 	});
 </script>
 
-<main class="w-full h-full flex items-center justify-center p-3 bg-transparent">
+<main class="w-full h-full flex items-center justify-center p-3 bg-transparent whitespace-pre-wrap">
 	<p
 		style:display={data.settings.type === 'text' ? 'block' : 'none'}
 		style:color={data.settings.color}

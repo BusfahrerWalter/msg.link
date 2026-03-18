@@ -1,7 +1,9 @@
 <script lang="ts">
 	import Button from "@/components/ui/button/button.svelte";
 	import LoginPage from "./login-page.svelte";
+
 	import * as m from '$lib/paraglide/messages';
+	import { getCode, notifyToastEntry, readPayload, resolveToast } from '$lib/api-toast';
 
 	type Props = {
 		data: {
@@ -26,9 +28,11 @@
 		clearMessage();
 	});
 
-	async function readPayload(response: Response) {
-		return (await response.json().catch(() => null)) as Record<string, unknown> | null;
-	}
+	const loginToastMap = {
+		INVALID_USERNAME: { message: m.login_invalid_username() },
+		INVALID_PASSWORD: { message: m.login_invalid_password() },
+		INVALID_CREDENTIALS: { message: m.login_invalid_credentials() }
+	};
 
 	function clearMessage() {
 		message = '\u200B'; // zero-width space to prevent layout shift
@@ -51,16 +55,12 @@
 		});
 
 		const payload = await readPayload(response);
-		if (payload && !payload.success) {
-			switch (payload?.code) {
-				case 'INVALID_USERNAME': message = m.login_invalid_username(); break;
-				case 'INVALID_PASSWORD': message = m.login_invalid_password(); break;
-				case 'INVALID_CREDENTIALS': message = m.login_invalid_credentials(); break;
-				default: message = m.login_request_failed();
-			}
-		}
+		const code = getCode(payload);
 
 		if (!response.ok) {
+			const toastEntry = resolveToast(code, loginToastMap, m.login_request_failed());
+			message = toastEntry.message;
+			notifyToastEntry(toastEntry);
 			return;
 		}
 

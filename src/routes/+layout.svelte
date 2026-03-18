@@ -1,12 +1,15 @@
 <script lang="ts">
+	import '../app.css';
+
+	import { onMount } from 'svelte';
+	import { ModeWatcher, setMode } from 'mode-watcher';
+
 	import { page } from '$app/state';
 	import { locales, localizeHref, setLocale } from '$lib/paraglide/runtime';
-	import * as m from '$lib/paraglide/messages';
-	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { ModeWatcher, setMode } from 'mode-watcher';
-	import { onMount } from 'svelte';
-	import { toMode } from '$src/util';
+	import { toMode } from '$lib/utils';
+	import { Toaster } from '$lib/components/ui/sonner';
+	import * as m from '$lib/paraglide/messages';
 
 	type Props = {
 		children: import('svelte').Snippet;
@@ -30,6 +33,8 @@
 	defaultMode={preferredMode}
 	themeColors={{ light: '#ffffff', dark: '#0f172a' }}
 />
+
+<Toaster />
 
 {@render children()}
 

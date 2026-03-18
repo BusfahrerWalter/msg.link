@@ -1,9 +1,7 @@
 import { json } from '@sveltejs/kit';
-import { env } from '$env/dynamic/public';
 import type { RequestHandler } from './$types';
+import { MAX_SUFFIX_LENGTH } from '$lib/public-env';
 import * as auth from '@/server/user-auth';
-
-const maxSuffixLength = Number(env.PUBLIC_MAX_SUFFIX_LENGTH ?? '20');
 
 /**
  * Load an existing user
@@ -47,7 +45,7 @@ export const PATCH: RequestHandler = async ({ cookies, request }) => {
 		const isString = typeof urlSuffix === 'string';
 		const trimmedSuffix = isString ? urlSuffix.trim() : '';
 
-		if (!isString || trimmedSuffix.length === 0 || trimmedSuffix.length > maxSuffixLength) {
+		if (!isString || trimmedSuffix.length === 0 || trimmedSuffix.length > MAX_SUFFIX_LENGTH) {
 			const payload: App.UserApiResponse = {
 				authenticated: false,
 				code: 'INVALID_URL_SUFFIX',
