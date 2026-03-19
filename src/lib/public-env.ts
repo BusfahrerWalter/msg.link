@@ -6,7 +6,8 @@ const DEFAULTS = {
 	MIN_PASSWORD_LENGTH: 6,
 	MAX_PASSWORD_LENGTH: 50,
 	MAX_SUFFIX_LENGTH: 20,
-	MAX_CONTENT_LENGTH: 280
+	MAX_CONTENT_LENGTH: 280,
+	SESSION_TTL_DAYS: 7
 } as const;
 
 function readPositiveInteger(value: string | undefined, fallback: number) {
@@ -46,4 +47,9 @@ export const MAX_SUFFIX_LENGTH = readPositiveInteger(
 export const MAX_CONTENT_LENGTH = readPositiveInteger(
 	env.PUBLIC_MAX_CONTENT_LENGTH,
 	DEFAULTS.MAX_CONTENT_LENGTH
+);
+
+export const SESSION_TTL_DAYS = readPositiveInteger(
+	env.PUBLIC_SESSION_TTL_DAYS,
+	DEFAULTS.SESSION_TTL_DAYS
 );

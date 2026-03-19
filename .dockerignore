@@ -1,0 +1,14 @@
+.git
+.github
+.vscode
+node_modules
+.pnpm-store
+.svelte-kit
+build
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.app-data

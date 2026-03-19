@@ -5,25 +5,16 @@ import type { Cookies } from '@sveltejs/kit';
 import { dataManager } from '$lib/server/data/DataManager';
 import * as txt from '$lib/server/text-store';
 import * as msg from '$lib/server/message-settings-store';
+import { SESSION_TTL_DAYS } from '@/public-env';
 
 const userSessionCookieName = 'user_session';
-const defaultSessionDays = 7;
 const defaultAdminPassword = (env.DEFAULT_ADMIN_PASSWORD ?? 'admin123').trim();
 const defaultAdminUsername = (env.DEFAULT_ADMIN_USERNAME ?? 'admin').trim();
 
 ensureDefaultUser();
 
-function getSessionLifetimeDays() {
-	const configuredDays = Number(env.USER_SESSION_TTL_DAYS ?? defaultSessionDays);
-	if (!Number.isFinite(configuredDays) || configuredDays <= 0) {
-		return defaultSessionDays;
-	}
-
-	return configuredDays;
-}
-
 function getSessionLifetimeMs() {
-	return getSessionLifetimeDays() * 24 * 60 * 60 * 1000;
+	return SESSION_TTL_DAYS * 24 * 60 * 60 * 1000;
 }
 
 async function hashToken(token: string) {

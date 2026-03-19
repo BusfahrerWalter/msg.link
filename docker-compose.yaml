@@ -1,0 +1,18 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: msg-link
+    restart: unless-stopped
+    ports:
+      - "7070:3000"
+    environment:
+      PORT: "3000"
+      DEFAULT_ADMIN_USERNAME: "admin"
+      DEFAULT_ADMIN_PASSWORD: "admin123"
+    volumes:
+      - app-data:/app/.app-data
+
+volumes:
+  app-data:

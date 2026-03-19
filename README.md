@@ -21,6 +21,26 @@ DEFAULT_ADMIN_USERNAME=admin
 pnpm dev
 ```
 
+## Docker
+
+Build and run locally with Docker Compose:
+
+```sh
+docker compose up --build
+```
+
+The app will be available on `http://localhost:7070`.
+Data is persisted in the `app-data` Docker volume and mounted to `/app/.app-data`.
+
+## GitHub Container Registry (GHCR)
+
+A workflow is provided at `.github/workflows/docker-publish.yml`.
+It will:
+
+- build on pushes to `main` and tags (`v*`)
+- publish images to `ghcr.io/<owner>/<repo>` on non-PR events
+- tag images by branch/tag/SHA and `latest` on the default branch
+
 ## Security notes
 
 - On first use, the server creates a default admin user from `DEFAULT_ADMIN_USERNAME`, `DEFAULT_ADMIN_PASSWORD`.

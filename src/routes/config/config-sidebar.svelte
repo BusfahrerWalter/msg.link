@@ -102,7 +102,7 @@
 
 <Sidebar.Root>
 	<Sidebar.Content>
-		{@render section(topItems, m.sidebar_navigation())}
+		{@render section(topItems, m.app_title())}
 
 		{#if user.isAdmin}
 			{@render section(adminItems, m.sidebar_administrator())}

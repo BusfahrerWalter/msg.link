@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import path from 'path';
 import { DatabaseSync } from 'node:sqlite';
+import { env } from '$env/dynamic/private';
 
 type PreparedStatement = ReturnType<DatabaseSync['prepare']>;
 
@@ -164,6 +165,15 @@ export class ServerDataManager {
 		};
 	}
 
+	public static create() {
+		let appDataPath = (env.DEFAULT_APP_DATA_PATH ?? '.app-data').trim();
+		if (!path.isAbsolute(appDataPath)) {
+			appDataPath = path.join(process.cwd(), appDataPath);
+		}
+
+		return new ServerDataManager(path.join(appDataPath, 'app.db'));
+	}
+
 	public loadText(urlSuffix: string) {
 		const row = this.statements.loadText.get(urlSuffix) as { text: string } | undefined;
 		return row ? row.text : null;
@@ -297,6 +307,4 @@ export class ServerDataManager {
 	}
 }
 
-export const dataManager = new ServerDataManager(
-	path.join(process.cwd(), '.app-data', 'app.db')
-);
+export const dataManager = ServerDataManager.create();
