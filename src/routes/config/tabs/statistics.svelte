@@ -125,6 +125,19 @@
 		});
 	}
 
+	function createTickFn(stepLimit: number) {
+		return (scale: any) => {
+			const step = scale.step();
+			if (step > stepLimit) {
+				return scale.domain();
+			}
+
+			return scale.domain().filter((_: any, index: number) => {
+				return index % Math.ceil(stepLimit / step) === 0;
+			});
+		};
+	}
+
 	const dailySeries = $derived(buildDailySeries(14));
 	const weeklySeries = $derived(buildWeeklySeries(8));
 	const weekdaySeries = $derived(buildWeekdaySeries());
@@ -171,12 +184,12 @@
 	} satisfies Chart.ChartConfig;
 
 	const dailyXAxisProps = {
-		tickSpacing: 72,
+		ticks: createTickFn(50),
 		tickMultiline: true
 	};
 
 	const weeklyXAxisProps = {
-		tickSpacing: 120,
+		ticks: createTickFn(100),
 		tickMultiline: true
 	};
 </script>
