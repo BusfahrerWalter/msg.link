@@ -1,4 +1,6 @@
 <script lang="ts">
+	import LinkIcon from '@lucide/svelte/icons/link';
+	import CheckIcon from '@lucide/svelte/icons/check';
 	import Button from "@/components/ui/button/button.svelte";
 	import * as m from '$lib/paraglide/messages';
 	import { marked } from 'marked';
@@ -15,6 +17,14 @@
 	const { data }: Props = $props();
 	let isPreview = $state(false);
 	let markdownHtml = $state('');
+	let copied = $state(false);
+
+	async function share() {
+		const url = `${globalThis.location.origin}/t/${encodeURIComponent(data.suffix)}`;
+		await navigator.clipboard.writeText(url);
+		copied = true;
+		setTimeout(() => { copied = false; }, 2000);
+	}
 
 	if (globalThis.location) {
 		const search = new URLSearchParams(globalThis.location.search);
@@ -82,10 +92,27 @@
 {#if isPreview}
 	<Button
 		class="fixed top-2 left-2"
+		variant="outline"
+		size="sm"
 		href="/config"
-		variant="link"
 	>
 		← {m.preview_back()}
+	</Button>
+
+	<Button
+		class="fixed top-2 right-2 gap-1.5"
+		variant="outline"
+		size="sm"
+		onclick={share}
+		aria-label="Copy link"
+	>
+		{#if copied}
+			<CheckIcon class="size-4" />
+			{m.share_copied()}
+		{:else}
+			<LinkIcon class="size-4" />
+			{m.share_copy_link()}
+		{/if}
 	</Button>
 {/if}
 
