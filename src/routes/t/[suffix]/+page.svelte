@@ -1,6 +1,8 @@
 <script lang="ts">
 	import Button from "@/components/ui/button/button.svelte";
 	import * as m from '$lib/paraglide/messages';
+	import { marked } from 'marked';
+	import DOMPurify from 'dompurify';
 
 	type Props = {
 		data: {
@@ -12,6 +14,7 @@
 
 	const { data }: Props = $props();
 	let isPreview = $state(false);
+	let markdownHtml = $state('');
 
 	if (globalThis.location) {
 		const search = new URLSearchParams(globalThis.location.search);
@@ -19,12 +22,13 @@
 	}
 
 	$effect(() => {
-		if (!globalThis.document?.body) {
+		const body = globalThis.document?.body;
+		if (!body) {
 			return;
 		}
 
 		// apply styles from settings
-		globalThis.document.body.style.backgroundColor = data.settings.background;
+		body.style.backgroundColor = data.settings.background;
 
 		// redirect if type is link
 		if (data.settings.type === 'link') {
@@ -32,32 +36,47 @@
 		}
 		// if type is image, set the text as background image
 		else if (data.settings.type === 'image') {
-			globalThis.document.body.style.backgroundImage = `url(${data.text})`;
-			globalThis.document.body.style.backgroundSize = 'cover';
-			globalThis.document.body.style.backgroundPosition = 'center';
+			body.style.backgroundImage = `url(${data.text})`;
+			body.style.backgroundSize = 'cover';
+			body.style.backgroundPosition = 'center';
+		}
+		// parse and sanitize markdown content
+		else if (data.settings.type === 'markdown') {
+			const rawHtml = marked.parse(data.text, { async: false });
+			markdownHtml = DOMPurify.sanitize(rawHtml);
 		}
 
 		return () => {
-			if (!globalThis.document?.body) {
+			if (!body) {
 				return;
 			}
 
 			// reset styles on unmount
-			globalThis.document.body.style.backgroundColor = '';
-			globalThis.document.body.style.backgroundImage = '';
-			globalThis.document.body.style.backgroundSize = '';
-			globalThis.document.body.style.backgroundPosition = '';
+			body.style.backgroundColor = '';
+			body.style.backgroundImage = '';
+			body.style.backgroundSize = '';
+			body.style.backgroundPosition = '';
 		};
 	});
 </script>
 
-<main class="w-full h-full flex items-center justify-center p-3 bg-transparent whitespace-pre-wrap">
+<main class="w-full h-full flex items-center justify-center p-3 bg-transparent">
 	<p
+		class="whitespace-pre-wrap"
 		style:display={data.settings.type === 'text' ? 'block' : 'none'}
 		style:color={data.settings.color}
 		style:font-size={data.settings.fontSize}
 		style:font-family={data.settings.font}
 	>{data.text}</p>
+	<div
+		class="markdown max-w-prose w-fit"
+		style:display={data.settings.type === 'markdown' ? 'block' : 'none'}
+		style:color={data.settings.color}
+		style:font-size={data.settings.fontSize}
+		style:font-family={data.settings.font}
+	>
+		{@html markdownHtml}
+	</div>
 </main>
 
 {#if isPreview}
@@ -73,3 +92,28 @@
 <svelte:head>
 	<title>{data.text}</title>
 </svelte:head>
+
+<style>
+	.markdown :global(h1) { font-size: 2em; font-weight: bold; margin: 0.67em 0; }
+	.markdown :global(h2) { font-size: 1.5em; font-weight: bold; margin: 0.83em 0; }
+	.markdown :global(h3) { font-size: 1.17em; font-weight: bold; margin: 1em 0; }
+	.markdown :global(h4),
+	.markdown :global(h5),
+	.markdown :global(h6) { font-weight: bold; margin: 1em 0; }
+	.markdown :global(p) { margin: 1em 0; }
+	.markdown :global(ul) { list-style: disc; margin: 1em 0; padding-left: 2em; }
+	.markdown :global(ol) { list-style: decimal; margin: 1em 0; padding-left: 2em; }
+	.markdown :global(li) { margin: 0.25em 0; }
+	.markdown :global(a) { text-decoration: underline; }
+	.markdown :global(strong) { font-weight: bold; }
+	.markdown :global(em) { font-style: italic; }
+	.markdown :global(code) { font-family: monospace; background: rgba(128,128,128,0.15); padding: 0.1em 0.35em; border-radius: 3px; }
+	.markdown :global(pre) { background: rgba(128,128,128,0.15); padding: 1em; border-radius: 6px; overflow-x: auto; margin: 1em 0; }
+	.markdown :global(pre code) { background: none; padding: 0; }
+	.markdown :global(blockquote) { border-left: 3px solid currentColor; margin: 1em 0; padding-left: 1em; opacity: 0.75; }
+	.markdown :global(hr) { border: none; border-top: 1px solid currentColor; margin: 1.5em 0; opacity: 0.3; }
+	.markdown :global(table) { border-collapse: collapse; width: 100%; margin: 1em 0; }
+	.markdown :global(th),
+	.markdown :global(td) { border: 1px solid currentColor; padding: 0.4em 0.75em; }
+	.markdown :global(th) { font-weight: bold; }
+</style>

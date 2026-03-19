@@ -20,6 +20,7 @@
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
 		"@types/d3-shape": "^3.1.8",
+		"@types/dompurify": "^3.2.0",
 		"@types/node": "^25.5.0",
 		"bits-ui": "^2.16.3",
 		"d3-shape": "^3.2.0",
@@ -37,6 +38,8 @@
 		"@tailwindcss/vite": "^4.2.1",
 		"argon2": "^0.44.0",
 		"clsx": "^2.1.1",
+		"dompurify": "^3.3.3",
+		"marked": "^17.0.4",
 		"tailwind-merge": "^3.5.0",
 		"tailwindcss": "^4.2.1"
 	}
