@@ -3,8 +3,10 @@ import { loadConfigData } from '../config-data';
 import { resolveConfigTab } from '../config-tabs';
 
 export const load: PageServerLoad = async ({ cookies, params }) => {
+	const selectedTab = resolveConfigTab(params.tab);
+
 	return {
-		...(await loadConfigData(cookies)),
-		selectedTab: resolveConfigTab(params.tab)
+		...(await loadConfigData(cookies, { includeStatistics: selectedTab === 'statistics' })),
+		selectedTab
 	};
 };

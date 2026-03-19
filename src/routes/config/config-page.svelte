@@ -1,13 +1,13 @@
 <script lang="ts">
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import AppSidebar from "./config-sidebar.svelte";
-
 	import UserSettings from "./tabs/user-settings.svelte";
 	import ContentSettings from "./tabs/content-settings.svelte";
 	import Preferences from "./tabs/preferences.svelte";
 	import ManageUsers from "./tabs/manage-users.svelte";
-	import * as m from '$lib/paraglide/messages';
+	import Statistics from "./tabs/statistics.svelte";
 
+	import * as m from '$lib/paraglide/messages';
 	import { getConfigTabLabel } from "./config-tabs";
 
 	type Props = {
@@ -16,6 +16,7 @@
 			user?: App.UserProfile | null;
 			messageSettings?: Data.StoredMessageSettings | null;
 			content?: string | null;
+			statistics?: Data.StoredPageVisitStat[];
 			selectedTab: App.SidebarTab;
 		}
 	};
@@ -25,6 +26,7 @@
 	let currentUser = $state<App.UserProfile | null>(null);
 	let currentMessageSettings = $state<Data.StoredMessageSettings | null>(null);
 	let currentContent = $state<string | null>(null);
+	let currentStatistics = $state<Data.StoredPageVisitStat[]>([]);
 	let currentTab = $state<App.SidebarTab>('message-settings');
 
 	$effect(() => {
@@ -35,6 +37,7 @@
 		currentUser = data.user ?? null;
 		currentMessageSettings = data.messageSettings ?? null;
 		currentContent = data.content ?? null;
+		currentStatistics = data.statistics ?? [];
 		currentTab = data.selectedTab;
 	});
 
@@ -99,6 +102,8 @@
 						/>
 					{:else if currentTab === 'manage-users'}
 						<ManageUsers />
+					{:else if currentTab === 'statistics'}
+						<Statistics statistics={currentStatistics} />
 					{/if}
 				</div>
 			</div>

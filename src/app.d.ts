@@ -69,6 +69,11 @@ declare global {
 			username: string;
 			expiresAt: string;
 		}
+
+		interface StoredPageVisitStat {
+			day: string;
+			visitCount: number;
+		}
 	}
 }
 

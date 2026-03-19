@@ -3,7 +3,7 @@ import { loadConfigData } from './config-data';
 
 export const load: PageServerLoad = async ({ cookies }) => {
 	return {
-		...(await loadConfigData(cookies)),
+		...(await loadConfigData(cookies, { includeStatistics: false })),
 		selectedTab: 'message-settings' as const
 	};
 };

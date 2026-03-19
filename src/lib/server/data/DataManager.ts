@@ -23,6 +23,8 @@ export class ServerDataManager {
 		removeSessionsByUsername: PreparedStatement;
 		removeSettingsByUsername: PreparedStatement;
 		removeTextBySuffix: PreparedStatement;
+		recordPageVisit: PreparedStatement;
+		loadRecentPageVisits: PreparedStatement;
 	};
 
 	constructor(databasePath: string) {
@@ -30,6 +32,7 @@ export class ServerDataManager {
 
 		this.database = new DatabaseSync(databasePath);
 		this.database.exec(`
+			PRAGMA foreign_keys = ON;
 			PRAGMA journal_mode = WAL;
 			CREATE TABLE IF NOT EXISTS users (
 				username TEXT PRIMARY KEY NOT NULL,
@@ -55,6 +58,13 @@ export class ServerDataManager {
 				background TEXT NOT NULL,
 				fontSize TEXT NOT NULL,
 				font TEXT NOT NULL
+			);
+			CREATE TABLE IF NOT EXISTS page_visit_statistics (
+				username TEXT NOT NULL,
+				day TEXT NOT NULL,
+				visitCount INTEGER NOT NULL DEFAULT 1 CHECK (visitCount > 0),
+				PRIMARY KEY (username, day),
+				FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 			);
 		`);
 
@@ -138,6 +148,18 @@ export class ServerDataManager {
 			removeTextBySuffix: this.database.prepare(`
 				DELETE FROM texts
 				WHERE id = ?
+			`),
+			recordPageVisit: this.database.prepare(`
+				INSERT INTO page_visit_statistics (username, day, visitCount)
+				VALUES (?, ?, 1)
+				ON CONFLICT(username, day) DO UPDATE SET
+					visitCount = page_visit_statistics.visitCount + 1
+			`),
+			loadRecentPageVisits: this.database.prepare(`
+				SELECT day, visitCount
+				FROM page_visit_statistics
+				WHERE username = ? AND day >= ?
+				ORDER BY day ASC
 			`)
 		};
 	}
@@ -254,6 +276,24 @@ export class ServerDataManager {
 
 	public deleteUser(username: string) {
 		this.statements.deleteUser.run(username);
+	}
+
+	public recordPageVisit(username: string, day: string) {
+		this.statements.recordPageVisit.run(username, day);
+	}
+
+	public loadRecentPageVisits(username: string, sinceDay: string) {
+		const rows = this.statements.loadRecentPageVisits.all(username, sinceDay) as Array<{
+			day: string;
+			visitCount: number;
+		}>;
+
+		return rows.map((row) => {
+			return {
+				day: row.day,
+				visitCount: Number(row.visitCount)
+			};
+		});
 	}
 }
 
